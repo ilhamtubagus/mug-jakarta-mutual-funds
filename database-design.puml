@@ -1,0 +1,89 @@
+@startuml
+
+entity User {
+    *id: string
+    fulName: string
+    nik: string
+    *dateOfBirth: string
+    riskProfile: riskProfileType
+    status: UserStatus
+    portfolios: Array<Portfolio>
+    createdAt: Date
+    modifiedAt: Date
+}
+
+entity Portfolio {
+    userId: string
+    name: string
+    code: string
+    products: Array<PortfolioProduct>
+    createdAt: Date
+    modifiedAt: Date
+}
+
+entity PortfolioProduct {
+    units: number
+    product: Product
+    createdAt: Date
+    modifiedAt: Date
+}
+
+entity Product {
+    name: string
+    productCode: string
+    investmentManager: InvestmentManager
+    imageUrl: string
+    productCategory: ProductCategory
+    nav: Nav
+    redemptionFee: number
+    buyFee: number
+    tax: number
+    createdAt: Date
+    modifiedAt: Date
+}
+
+entity Nav {
+    productCode: string
+    createdAt: Date
+    ytdPercent: number
+    ytdValue: number
+    value5Y: number
+    percent5Y: number
+    value3Y: number
+    percent3Y: number
+    value2Y: number
+    percent2Y: number
+    value1Y: number
+    percent1Y: number
+    value3M: number
+    percent3M: number
+    value1M: number
+    percent1M: number
+    value14D: number
+    percent14D: number
+    value7D: number
+    percent7D: number
+    value3D: number
+    percent3D: number
+    value1D: number
+    percent1D: number
+}
+
+enum ProductCategory {
+    Money Market
+    Equity
+    Fixed Income
+}
+
+enum UserStatus{
+    ACTIVE
+    PENDING
+}
+
+enum RiskProfileType{
+    aggressive
+    moderate
+    moderate conservative
+    conservative
+}
+@enduml
