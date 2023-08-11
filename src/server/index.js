@@ -1,6 +1,7 @@
 import express from 'express';
 import { pinoHttp } from 'pino-http';
 import mongodb from 'mongodb';
+import bodyParser from 'body-parser';
 import App from './app.js';
 import config from '../../config.js';
 import { connectToDb, disconnectDb } from './db.js';
@@ -16,7 +17,7 @@ const _stopServer = async (server) => async () => {
 
 const main = async () => {
   const middlewares = {
-    pre: [],
+    pre: [bodyParser.json()],
     post: [],
   };
 
