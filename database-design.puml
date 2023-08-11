@@ -1,10 +1,10 @@
 @startuml
 
 entity User {
-    *id: string
+    userId: string
     fulName: string
     nik: string
-    *dateOfBirth: string
+    dateOfBirth: string
     riskProfile: riskProfileType
     status: UserStatus
     portfolios: Array<Portfolio>
@@ -15,7 +15,7 @@ entity User {
 entity Portfolio {
     userId: string
     name: string
-    code: string
+    portfolioCode: string
     products: Array<PortfolioProduct>
     createdAt: Date
     modifiedAt: Date
@@ -35,7 +35,7 @@ entity Product {
     imageUrl: string
     productCategory: ProductCategory
     nav: Nav
-    redemptionFee: number
+    sellFee: number
     buyFee: number
     tax: number
     createdAt: Date
@@ -67,12 +67,41 @@ entity Nav {
     percent3D: number
     value1D: number
     percent1D: number
+    currentValue: number
+    currentPercent: number
 }
 
 enum ProductCategory {
     Money Market
     Equity
     Fixed Income
+}
+
+entity Transaction {
+    transactionID: string
+    userId: string
+    amount: string
+    units: string
+    product: Product
+    type: TransactionType
+}
+
+entity Payment {
+    transactionID: string
+    paymentCode: string
+    expiredAt: Date
+}
+
+enum TransactionType {
+    BUY
+    SELL
+}
+
+enum TransactionStatus {
+    PENDING
+    VERIFIED
+    SETTLED
+    FAILED
 }
 
 enum UserStatus{
@@ -86,4 +115,16 @@ enum RiskProfileType{
     moderate conservative
     conservative
 }
+
+Product ||--|| ProductCategory
+Product ||--|{ Nav
+PortfolioProduct ||--|| Product
+Portfolio ||--o{ PortfolioProduct
+User ||--o{ Portfolio
+User ||--o{ Transaction
+User ||--|| UserStatus
+Transaction ||--|| TransactionStatus
+Transaction ||--|| TransactionType
+User ||--|| RiskProfileType
+Transaction ||--|| Payment
 @enduml
