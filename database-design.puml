@@ -10,6 +10,14 @@ entity User {
     portfolios: Array<Portfolio>
     createdAt: Date
     modifiedAt: Date
+    role: UserRole
+}
+
+enum UserRole {
+    Customer
+    Checker
+    Maker
+    Admin
 }
 
 entity Portfolio {
@@ -42,7 +50,45 @@ entity Product {
     modifiedAt: Date
 }
 
+entity "Pending Product Changes" {
+    productCode: string
+    name: string
+    imageUrl: string
+    sellFee: number
+    buyFee: number
+    tax: number
+}
+
 entity Nav {
+    productCode: string
+    createdAt: Date
+    ytdPercent: number
+    ytdValue: number
+    value5Y: number
+    percent5Y: number
+    value3Y: number
+    percent3Y: number
+    value2Y: number
+    percent2Y: number
+    value1Y: number
+    percent1Y: number
+    value3M: number
+    percent3M: number
+    value1M: number
+    percent1M: number
+    value14D: number
+    percent14D: number
+    value7D: number
+    percent7D: number
+    value3D: number
+    percent3D: number
+    value1D: number
+    percent1D: number
+    currentValue: number
+    currentPercent: number
+}
+
+entity "Pending Nav Changes" {
     productCode: string
     createdAt: Date
     ytdPercent: number
@@ -127,4 +173,7 @@ Transaction ||--|| TransactionStatus
 Transaction ||--|| TransactionType
 User ||--|| RiskProfileType
 Transaction ||--|| Payment
+User ||--|| UserRole
+Product |o--o| "Pending Product Changes"
+Nav o--o| "Pending Nav Changes"
 @enduml
