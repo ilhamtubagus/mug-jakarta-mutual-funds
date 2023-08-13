@@ -31,4 +31,4 @@ const disconnectDb = async (app) => {
   logger.info('Disconnected from database');
 };
 
-export { connectToDb, disconnectDb };
+module.exports = { connectToDb, disconnectDb };

@@ -1,11 +1,11 @@
-import express from 'express';
-import { pinoHttp } from 'pino-http';
-import mongodb from 'mongodb';
-import bodyParser from 'body-parser';
-import App from './app.js';
-import config from '../../config.js';
-import { connectToDb, disconnectDb } from './db.js';
-import routes from '../routes/index.js';
+const express = require('express');
+const { pinoHttp } = require('pino-http');
+const mongodb = require('mongodb');
+const bodyParser = require('body-parser');
+const App = require('./app.js');
+const config = require('../../config.js');
+const { connectToDb, disconnectDb } = require('./db.js');
+const routes = require('../routes/index.js');
 
 const _dbTearDown = async (expressApp) => {
   await disconnectDb(expressApp);
