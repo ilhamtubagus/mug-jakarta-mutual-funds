@@ -1,4 +1,4 @@
-import dotenv from 'dotenv';
+const dotenv = require('dotenv');
 
 dotenv.config();
 
@@ -14,7 +14,14 @@ const config = {
   logger: {
     level: process.env.LOG_LEVEL,
   },
-
+  jwt: {
+    secretKey: process.env.SECRET_KEY,
+    keyAlgorithm: process.env.KEY_ALGORITHM || 'HS256',
+    expiry: process.env.JWT_EXPIRY || '1m',
+  },
+  encryption: {
+    secret: process.env.ENC_SECRET || 10,
+  },
 };
 
-export default config;
+module.exports = config;

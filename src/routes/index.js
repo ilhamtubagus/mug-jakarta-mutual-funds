@@ -1,2 +1,4 @@
-const routes = [];
-export default routes;
+const account = require('./account.js');
+
+const routes = [account];
+module.exports = routes;

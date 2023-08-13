@@ -5,13 +5,13 @@
   "main": "src/server/index.js",
   "scripts": {
     "dev": "nodemon src/server/index.js | pino-pretty",
-    "test": "LOG_LEVEL=fatal mocha ./test --recursive",
-    "coverage": "LOG_LEVEL=fatal nyc npm run test",
+    "test": "jest",
+    "coverage": "jest --coverage",
     "lint": "eslint src config test",
     "lint:fix": "eslint src config test --fix",
     "precommit": "npm run lint"
   },
-  "type": "module",
+  "type": "commonjs",
   "engines": {
     "node": "^16.15.1"
   },
@@ -20,26 +20,37 @@
   "license": "ISC",
   "dependencies": {
     "body-parser": "^1.20.2",
+    "crypto-js": "^4.1.1",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
+    "jsonwebtoken": "^9.0.1",
     "mongodb": "^5.7.0",
-    "pino-http": "^8.4.0",
-    "pino-pretty": "^10.2.0"
+    "pino-http": "^8.4.0"
   },
   "devDependencies": {
-    "chai": "^4.3.7",
-    "chai-as-promised": "^7.1.1",
+    "@shelf/jest-mongodb": "^4.1.7",
     "eslint": "^8.46.0",
     "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-import": "^2.28.0",
-    "mocha": "^10.2.0",
+    "eslint-plugin-jest": "^27.2.3",
+    "jest": "^29.6.2",
     "nodemon": "^3.0.1",
     "nyc": "^15.1.0",
-    "sinon-chai": "^3.7.0"
+    "pino-pretty": "^10.2.0"
   },
-  "mocha": {
-    "spec": "test/**/*.spec.js",
-    "globals": "global",
-    "require": "test/test-setup.js"
+  "jest": {
+    "globals": {
+      "__DEV__": true
+    },
+    "testPathIgnorePatterns": [
+      "<rootDir>/node_modules"
+    ],
+    "collectCoverageFrom": [
+      "src/**/*.js",
+      "!src/**/index.js",
+      "!src/**/app.js",
+      "!src/routes/*.js"
+    ],
+    "preset": "@shelf/jest-mongodb"
   }
 }

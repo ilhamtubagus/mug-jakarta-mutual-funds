@@ -1,4 +1,5 @@
-import express from 'express';
+const express = require('express');
+const CustomError = require('../utils/error.js');
 
 class App {
   constructor(opts) {
@@ -24,10 +25,12 @@ class App {
     }
 
     this.app.use((err, req, res, next) => {
-      req.logger.error(err);
+      req.log.error(err);
 
-      res.status(err.statusCode).send();
-      return next();
+      if (err instanceof CustomError) {
+        return res.status(err.statusCode).json(err);
+      }
+      return res.status(500).json(err);
     });
   }
 
@@ -72,4 +75,4 @@ class App {
     this._server.close();
   }
 }
-export default App;
+module.exports = App;
