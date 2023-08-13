@@ -1,6 +1,6 @@
 const { MongoClient } = require('mongodb');
 const AccountRepository = require('./account.repository');
-const { accounts: accountsMock } = require('../fixtures');
+const { accounts: mockAccounts } = require('../fixtures');
 
 describe('AccountRepository', () => {
   let connection;
@@ -25,7 +25,7 @@ describe('AccountRepository', () => {
 
   describe('#findOneByEmail', () => {
     beforeAll((async () => {
-      await collection.insertMany(accountsMock);
+      await collection.insertMany(mockAccounts);
     }));
 
     afterAll(async () => {
@@ -33,7 +33,7 @@ describe('AccountRepository', () => {
     });
 
     it('should return user for given email', async () => {
-      const expectedUser = accountsMock[0];
+      const expectedUser = mockAccounts[0];
 
       const account = await accountRepository.findOneByEmail(expectedUser.email);
 
@@ -50,7 +50,7 @@ describe('AccountRepository', () => {
 
   describe('#create', () => {
     it('should return the newly created account', async () => {
-      const expectedUser = accountsMock[0];
+      const expectedUser = mockAccounts[0];
 
       const { acknowledged } = await accountRepository.create(expectedUser);
 

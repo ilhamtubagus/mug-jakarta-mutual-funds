@@ -1,4 +1,4 @@
-const sample = require('./sample.js');
+const account = require('./account.js');
 
-const routes = [sample];
+const routes = [account];
 module.exports = routes;

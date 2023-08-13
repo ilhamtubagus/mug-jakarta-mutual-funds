@@ -6,6 +6,7 @@ const App = require('./app.js');
 const config = require('../../config.js');
 const { connectToDb, disconnectDb } = require('./db.js');
 const routes = require('../routes/index.js');
+const { accountMiddleware } = require('../middlewares');
 
 const _dbTearDown = async (expressApp) => {
   await disconnectDb(expressApp);
@@ -17,7 +18,7 @@ const _stopServer = async (server) => async () => {
 
 const main = async () => {
   const middlewares = {
-    pre: [bodyParser.json()],
+    pre: [bodyParser.json(), accountMiddleware],
     post: [],
   };
 

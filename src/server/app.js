@@ -28,10 +28,9 @@ class App {
       req.log.error(err);
 
       if (err instanceof CustomError) {
-        res.status(err.statusCode).json(err);
+        return res.status(err.statusCode).json(err);
       }
-      res.status(500).json(err);
-      return next(err);
+      return res.status(500).json(err);
     });
   }
 

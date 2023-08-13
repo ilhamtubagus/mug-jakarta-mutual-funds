@@ -5,7 +5,7 @@ class AccountRepository {
   }
 
   async findOneByEmail(email) {
-    this.logger.info(this.constructor.name, 'Get account by email');
+    this.logger.info(`Get account by email ${email}`);
 
     const query = { email };
 
@@ -13,7 +13,7 @@ class AccountRepository {
   }
 
   async create(payload) {
-    this.logger.info(this.constructor.name, `Create account for email ${payload.email}`);
+    this.logger.info(`Create account with ${JSON.stringify(payload)}`);
 
     const doc = {
       ...payload, lastModified: new Date(), createdAt: new Date(),

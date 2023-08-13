@@ -1,6 +1,6 @@
 const jwt = require('jsonwebtoken');
 const { JsonWebTokenError } = require('jsonwebtoken');
-const authentication = require('./authentication');
+const authentication = require('./authentication.middleware');
 const CustomError = require('../utils/error');
 
 describe('authentication', () => {
