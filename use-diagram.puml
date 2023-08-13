@@ -1,30 +1,18 @@
 @startuml
 left to right direction
 actor Customer
-actor Checker
-actor Maker
-actor Admin
 actor "Payment Gateway"
 rectangle "Mutual Fund" {
     usecase Login
     usecase "Browse Catalog Mutual Fund"
     usecase "Checkout"
     usecase "Update Transaction Status"
-    usecase "Update Product"
-    usecase "Approve Product Changes"
-    usecase "Create User"
     usecase "Check Transaction History"
 }
 
 Customer --> Login
-Admin --> Login
-Admin --> "Create User"
-Checker --> Login
-Maker --> Login
 Customer --> "Browse Catalog Mutual Fund"
 Customer --> "Checkout"
 Customer --> "Check Transaction History"
-Maker --> "Update Product"
-Checker --> "Approve Product Changes"
 "Payment Gateway" --> "Update Transaction Status"
 @enduml
