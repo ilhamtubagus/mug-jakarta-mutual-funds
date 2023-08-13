@@ -29,7 +29,7 @@ describe('authentication', () => {
   };
   const mockNext = jest.fn();
 
-  describe('_extractToken', () => {
+  describe('#_extractToken', () => {
     it('should throw custom error authorization headers is required when undefined', () => {
       const error = new CustomError('Authorization headers is required', 401);
 
@@ -57,7 +57,7 @@ describe('authentication', () => {
     });
   });
 
-  describe('_verifyToken', () => {
+  describe('#_verifyToken', () => {
     it('should throw custom error when token jwt token error', () => {
       const mockToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjMiLCJpYXQiOjE2OTE4OTY5MDcsImF1ZCI6IkNVU1RPTUVSIn0.KPtQWwkyp5sdLSrUoK0GDxC0DsdKERIL0Rpkt-h8XHo';
       mockReq.headers.authorization = `bearer ${mockToken}`;

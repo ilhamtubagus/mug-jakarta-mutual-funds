@@ -27,7 +27,7 @@ describe('db', () => {
     jest.clearAllMocks();
   });
 
-  describe('connectDb', () => {
+  describe('#connectDb', () => {
     it('should connect without options if its not provided', async () => {
       delete mockApp.locals.config.db.options;
       const mockMongoClient = {
@@ -56,7 +56,7 @@ describe('db', () => {
     });
   });
 
-  describe('disconnectDb', () => {
+  describe('#disconnectDb', () => {
     it('should ', async () => {
       mockApp.locals.mongoClient = {
         close: jest.fn(),

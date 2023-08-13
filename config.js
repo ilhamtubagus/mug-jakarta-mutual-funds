@@ -19,6 +19,9 @@ const config = {
     keyAlgorithm: process.env.KEY_ALGORITHM || 'HS256',
     expiry: process.env.JWT_EXPIRY || '1m',
   },
+  encryption: {
+    secret: process.env.ENC_SECRET || 10,
+  },
 };
 
 module.exports = config;
