@@ -117,10 +117,9 @@ entity "Pending Nav Changes" {
     currentPercent: number
 }
 
-enum ProductCategory {
-    Money Market
-    Equity
-    Fixed Income
+entity ProductCategory {
+    productCategoryCode: string
+    category: string
 }
 
 entity Transaction {
@@ -160,6 +159,11 @@ enum RiskProfileType{
     moderate
     moderate conservative
     conservative
+}
+
+entity InvestmentManager {
+    investmentManagerCode: string
+    name: string
 }
 
 Product ||--|| ProductCategory

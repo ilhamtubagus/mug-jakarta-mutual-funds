@@ -7,5 +7,5 @@ export $(xargs < .env)
 config="mongodb+srv://${DB_USERNAME}:${DB_PASSWORD}@${DB_INSTANCES}/${DB_NAME}?${DB_OPTIONS}"
 
 #Execute mongo script with above config
-mongo "${config}" script.js --quiet
+mongo "${config}" ./script/script.js --quiet
 
