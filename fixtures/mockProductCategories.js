@@ -1,14 +1,15 @@
-module.exports = [
+const productCategories = [
     {
-        productCategoryCode: 'MM',
-        category: 'Money Market'
+        "productCategoryCode": "MM",
+        "category": "Money Market"
     },
     {
-        productCategoryCode: 'E',
-        category: 'Equity'
+        "productCategoryCode": "EQ",
+        "category": "Equity"
     },
     {
-        productCategoryCode: 'FI',
-        category: 'Fixed Income'
-    },
+        "productCategoryCode": "FI",
+        "category": "Fixed Income"
+    }
 ]
+module.exports = productCategories;
