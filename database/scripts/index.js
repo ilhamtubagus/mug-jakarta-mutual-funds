@@ -1,6 +1,7 @@
 // load fixtures
 load('../fixtures/mockInvestmentManagers.js');
 load('../fixtures/mockProductCategories.js');
+load('../fixtures/mockProducts.js');
 
 // accounts collection
 async function schemaDefinitionAccounts(){
@@ -87,12 +88,35 @@ async function schemaDefinitionInvestmentManagers(){
 async function insertInvestmentManagers(){
     await db.investmentManagers.insertMany(investmentManagers);
 }
+
+// products collection
+async function schemaDefinitionProducts(){
+    await db.runCommand( { collMod: "products",
+        validator: {
+            $and: [
+                {
+                    $jsonSchema: {
+                        bsonType: "object",
+                        required: [ "productCode", "name", "investmentManager", "productCategory"]
+                    }
+                }
+            ]
+        }
+    });
+    await db.products.createIndex({"productCode": 1}, {unique: true})
+}
+
+async function insertProducts(){
+    await db.products.insertMany(products);
+}
 async function run(){
     await schemaDefinitionAccounts()
     await schemaDefinitionProductCategories();
     await schemaDefinitionInvestmentManagers();
+    await schemaDefinitionProducts();
     await insertProductCategories();
     await insertInvestmentManagers();
+    await insertProducts();
 }
 
 run()
