@@ -114,7 +114,6 @@ entity "Pending Nav Changes" {
     value1D: number
     percent1D: number
     currentValue: number
-    currentPercent: number
 }
 
 entity ProductCategory {
