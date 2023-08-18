@@ -2,9 +2,10 @@
 load('../fixtures/mockInvestmentManagers.js');
 load('../fixtures/mockProductCategories.js');
 load('../fixtures/mockProducts.js');
+load('../fixtures/mockNavs.js');
 
 // accounts collection
-async function schemaDefinitionAccounts(){
+async function defineAccountsSchema(){
     await db.accounts.createIndex( { "email": 1 }, { unique: true } )
     await db.runCommand( { collMod: "accounts",
         validator: {
@@ -33,7 +34,7 @@ async function schemaDefinitionAccounts(){
 }
 
 // product categories collection
-async function schemaDefinitionProductCategories(){
+async function defineProductCategoriesSchema(){
    await db.runCommand( { collMod: "productCategories",
         validator: {
             $and: [
@@ -61,7 +62,7 @@ async function insertProductCategories(){
 }
 
 // investment managers collection
-async function schemaDefinitionInvestmentManagers(){
+async function defineInvestmentManagersSchema(){
     await db.runCommand( { collMod: "investmentManagers",
         validator: {
             $and: [
@@ -90,7 +91,7 @@ async function insertInvestmentManagers(){
 }
 
 // products collection
-async function schemaDefinitionProducts(){
+async function defineProductsSchema(){
     await db.runCommand( { collMod: "products",
         validator: {
             $and: [
@@ -109,14 +110,37 @@ async function schemaDefinitionProducts(){
 async function insertProducts(){
     await db.products.insertMany(products);
 }
+
+// nav's collection
+async function defineNavsSchema() {
+    await db.runCommand( { collMod: "navs",
+        validator: {
+            $and: [
+                {
+                    $jsonSchema: {
+                        bsonType: "object",
+                        required: [ "currentValue", "productCode", "createdAt"]
+                    }
+                }
+            ]
+        }
+    });
+}
+
+async function insertNavs(){
+    await db.navs.insertMany(navs);
+}
+
 async function run(){
-    await schemaDefinitionAccounts()
-    await schemaDefinitionProductCategories();
-    await schemaDefinitionInvestmentManagers();
-    await schemaDefinitionProducts();
+    await defineAccountsSchema()
+    await defineProductCategoriesSchema();
+    await defineInvestmentManagersSchema();
+    await defineProductsSchema();
+    await defineNavsSchema();
     await insertProductCategories();
     await insertInvestmentManagers();
     await insertProducts();
+    await insertNavs();
 }
 
 run()
