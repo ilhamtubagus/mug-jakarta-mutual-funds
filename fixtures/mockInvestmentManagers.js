@@ -1,15 +1,18 @@
  const investmentManagers = [
      {
          "investmentManagerCode": "SCH",
-         "name": "Schroder"
+         "name": "Schroder",
+         "custodianBank": "Bank BTPN"
      },
      {
          "investmentManagerCode": "BNP",
-         "name": "BNP Paribas"
+         "name": "BNP Paribas",
+         "custodianBank": "Bank BCA"
      },
      {
          "investmentManagerCode": "MINV",
-         "name": "Mandiri Investa"
+         "name": "Mandiri Investa",
+         "custodianBank": "Bank Mandiri"
      }
  ]
  module.exports = investmentManagers;

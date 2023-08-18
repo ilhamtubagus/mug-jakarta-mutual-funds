@@ -1,6 +1,5 @@
 // load fixtures
 load('../fixtures/mockInvestmentManagers.js');
-load('../fixtures/mockProductCategories.js');
 load('../fixtures/mockProducts.js');
 load('../fixtures/mockNavs.js');
 
@@ -81,12 +80,15 @@ async function defineInvestmentManagersSchema(){
                 {
                     $jsonSchema: {
                         bsonType: "object",
-                        required: [ "investmentManagerCode", "name"],
+                        required: [ "investmentManagerCode", "name", "custodianBank"],
                         properties: {
                             investmentManagerCode: {
                                 bsonType: "string"
                             },
                             name: {
+                                bsonType: "string"
+                            },
+                            custodianBank: {
                                 bsonType: "string"
                             }
                         }
@@ -110,7 +112,13 @@ async function defineProductsSchema(){
                 {
                     $jsonSchema: {
                         bsonType: "object",
-                        required: [ "productCode", "name", "investmentManager", "productCategory"]
+                        required: [ "productCode", "name", "investmentManager", "productCategory"],
+                        properties: {
+                            productCategory: {
+                                bsonType: "string",
+                                enum: ["money market", "equity", "fixed income"]
+                            }
+                        }
                     }
                 }
             ]
@@ -212,7 +220,6 @@ async function definePaymentRequestSchema(){
 
 async function run(){
     await defineAccountsSchema()
-    await defineProductCategoriesSchema();
     await defineInvestmentManagersSchema();
     await defineProductsSchema();
     await defineNavsSchema();
@@ -220,7 +227,6 @@ async function run(){
     await definePortfolioProductsSchema();
     await defineTransactionsSchema();
     await definePaymentRequestSchema();
-    await insertProductCategories();
     await insertInvestmentManagers();
     await insertProducts();
     await insertNavs();

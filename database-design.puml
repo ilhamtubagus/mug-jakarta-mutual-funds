@@ -70,9 +70,10 @@ entity Nav {
     *currentValue: number
 }
 
-entity ProductCategory {
-    *productCategoryCode: string
-    *category: string
+enum ProductCategory {
+    money market
+    equity
+    fixed income
 }
 
 entity Transaction {
@@ -87,7 +88,7 @@ entity Transaction {
     failReason: string
 }
 
-entity "Payment Request" {
+entity "PaymentRequest" {
     *transactionID: string
     *paymentCode: string
     *expiredAt: Date
@@ -126,6 +127,6 @@ Account ||--o{ Transaction
 Transaction ||--|| TransactionStatus
 Transaction ||--|| TransactionType
 Account ||--|| RiskProfileType
-Transaction ||--|| "Payment Request"
+Transaction ||--|| "PaymentRequest"
 Transaction ||--|| Product
 @enduml
