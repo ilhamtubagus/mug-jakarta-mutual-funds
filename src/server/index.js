@@ -1,12 +1,12 @@
 const express = require('express');
-const { pinoHttp } = require('pino-http');
+const { createLogger } = require('bunyan');
 const mongodb = require('mongodb');
 const bodyParser = require('body-parser');
 const App = require('./app.js');
 const config = require('../../config.js');
 const { connectToDb, disconnectDb } = require('./db.js');
 const routes = require('../routes/index.js');
-const { accountMiddleware } = require('../middlewares');
+const { accountMiddleware, productMiddleware } = require('../middlewares');
 
 const _dbTearDown = async (expressApp) => {
   await disconnectDb(expressApp);
@@ -16,9 +16,11 @@ const _stopServer = async (server) => async () => {
   await server.stop();
 };
 
+const logger = createLogger({ name: config.server.appName, level: config.logger.level });
+
 const main = async () => {
   const middlewares = {
-    pre: [bodyParser.json(), accountMiddleware],
+    pre: [bodyParser.json(), accountMiddleware, productMiddleware],
     post: [],
   };
 
@@ -34,7 +36,7 @@ const main = async () => {
 
   const server = new App({
     express,
-    logger: pinoHttp(),
+    logger,
     config,
     initializations,
     teardownServices,
@@ -48,4 +50,4 @@ const main = async () => {
   process.on('SIGTERM', await _stopServer(server));
 };
 
-main().then(() => pinoHttp().logger.info('Server starting'));
+main().then(() => logger.info('Server starting'));
