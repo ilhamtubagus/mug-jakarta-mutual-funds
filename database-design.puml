@@ -1,48 +1,40 @@
 @startuml
 
-entity User {
-    userId: string
-    fulName: string
-    nik: string
-    dateOfBirth: string
-    riskProfile: riskProfileType
-    status: UserStatus
+entity Account {
+    *email: string
+    *password: string
+    *fulName: string
+    *nik: string
+    *cif: string
+    *dateOfBirth: string
+    *riskProfile: riskProfileType
     portfolios: Array<Portfolio>
     createdAt: Date
     modifiedAt: Date
-    role: UserRole
-}
-
-enum UserRole {
-    Customer
-    Checker
-    Maker
-    Admin
 }
 
 entity Portfolio {
-    userId: string
-    name: string
-    portfolioCode: string
+    *cif: string
+    *name: string
+    *portfolioCode: string
     products: Array<PortfolioProduct>
     createdAt: Date
     modifiedAt: Date
 }
 
 entity PortfolioProduct {
-    units: number
-    product: Product
+    *units: number
+    *product: Product
     createdAt: Date
     modifiedAt: Date
 }
 
 entity Product {
-    name: string
-    productCode: string
-    investmentManager: InvestmentManager
+    *name: string
+    *productCode: string
+    *investmentManager: InvestmentManager
     imageUrl: string
-    productCategory: ProductCategory
-    nav: Nav
+    *productCategory: ProductCategory
     sellFee: number
     buyFee: number
     tax: number
@@ -50,18 +42,9 @@ entity Product {
     modifiedAt: Date
 }
 
-entity "Pending Product Changes" {
-    productCode: string
-    name: string
-    imageUrl: string
-    sellFee: number
-    buyFee: number
-    tax: number
-}
-
 entity Nav {
-    productCode: string
-    createdAt: Date
+    *productCode: string
+    *createdAt: Date
     ytdPercent: number
     ytdValue: number
     value5Y: number
@@ -84,56 +67,30 @@ entity Nav {
     percent3D: number
     value1D: number
     percent1D: number
-    currentValue: number
-    currentPercent: number
-}
-
-entity "Pending Nav Changes" {
-    productCode: string
-    createdAt: Date
-    ytdPercent: number
-    ytdValue: number
-    value5Y: number
-    percent5Y: number
-    value3Y: number
-    percent3Y: number
-    value2Y: number
-    percent2Y: number
-    value1Y: number
-    percent1Y: number
-    value3M: number
-    percent3M: number
-    value1M: number
-    percent1M: number
-    value14D: number
-    percent14D: number
-    value7D: number
-    percent7D: number
-    value3D: number
-    percent3D: number
-    value1D: number
-    percent1D: number
-    currentValue: number
+    *currentValue: number
 }
 
 entity ProductCategory {
-    productCategoryCode: string
-    category: string
+    *productCategoryCode: string
+    *category: string
 }
 
 entity Transaction {
-    transactionID: string
-    userId: string
+    *transactionID: string
+    *cif: string
     amount: string
     units: string
-    product: Product
-    type: TransactionType
+    *product: Product
+    *type: TransactionType
+    *portfolioCode: string
+    *status: string
+    failReason: string
 }
 
-entity Payment {
-    transactionID: string
-    paymentCode: string
-    expiredAt: Date
+entity "Payment Request" {
+    *transactionID: string
+    *paymentCode: string
+    *expiredAt: Date
 }
 
 enum TransactionType {
@@ -143,14 +100,8 @@ enum TransactionType {
 
 enum TransactionStatus {
     PENDING
-    VERIFIED
     SETTLED
     FAILED
-}
-
-enum UserStatus{
-    ACTIVE
-    PENDING
 }
 
 enum RiskProfileType{
@@ -161,22 +112,20 @@ enum RiskProfileType{
 }
 
 entity InvestmentManager {
-    investmentManagerCode: string
-    name: string
+    *investmentManagerCode: string
+    *name: string
 }
 
 Product ||--|| ProductCategory
 Product ||--|{ Nav
 PortfolioProduct ||--|| Product
+Product ||--|| InvestmentManager
 Portfolio ||--o{ PortfolioProduct
-User ||--o{ Portfolio
-User ||--o{ Transaction
-User ||--|| UserStatus
+Account ||--o{ Portfolio
+Account ||--o{ Transaction
 Transaction ||--|| TransactionStatus
 Transaction ||--|| TransactionType
-User ||--|| RiskProfileType
-Transaction ||--|| Payment
-User ||--|| UserRole
-Product |o--o| "Pending Product Changes"
-Nav o--o| "Pending Nav Changes"
+Account ||--|| RiskProfileType
+Transaction ||--|| "Payment Request"
+Transaction ||--|| Product
 @enduml
