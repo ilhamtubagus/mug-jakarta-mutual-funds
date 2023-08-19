@@ -23,8 +23,9 @@ class App {
       post.forEach((middleware) => this.app.use(middleware));
     }
 
-    this.app.use((err, req, res) => {
-      req.log.error(err);
+    this.app.use((err, req, res, next) => {
+      const { logger } = req.app.locals;
+      logger.error(err);
 
       if (err instanceof CustomError) {
         return res.status(err.statusCode).json(err);
