@@ -1,5 +1,9 @@
 const accountMiddleware = require('./account.middleware');
 
+jest.mock("../utils/generator", () => ({
+  generateId: () => "ztYtfy7C1j",
+}));
+
 describe('#accountMiddleware', () => {
   const mockReq = {
     app: {
