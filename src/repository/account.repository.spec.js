@@ -1,5 +1,5 @@
 const { MongoClient } = require('mongodb');
-const AccountRepository = require('./account.repository');
+const { AccountRepository } = require('./index');
 const { accounts: mockAccounts } = require('../fixtures');
 
 describe('AccountRepository', () => {
@@ -12,7 +12,7 @@ describe('AccountRepository', () => {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
-    collection = await connection.db().collection('accounts');
+    collection = connection.db().collection('accounts');
     accountRepository = new AccountRepository({
       collection,
       logger: { info: jest.fn() },

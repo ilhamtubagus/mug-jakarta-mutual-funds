@@ -1,35 +1,95 @@
-// get products by investment manager / products category with pagination
-// get product by product code
 class ProductRepository {
   constructor({ collection, logger }) {
     this.collection = collection;
     this.logger = logger;
   }
 
-  async finOneByProductCode(productCode) {
-    return this.collection.findOne({ productCode });
-  }
-
-  static constructProductsPipeline(investmentManager, productCategory) {
-    const pipeline = [
+  static constructGetProductByProductCodePipeline(productCode) {
+    return [
+      {
+        $match: {
+          productCode: {
+            $eq: productCode,
+          },
+        },
+      },
       {
         $lookup: {
           from: 'investmentManagers',
+          localField: 'investmentManager',
+          foreignField: 'investmentManagerCode',
+          as: 'investmentManager',
+        },
+      },
+      {
+        $lookup: {
+          from: 'navs',
           let: {
-            investmentManager: '$investmentManager',
+            productCode: '$productCode',
           },
           pipeline: [
             {
               $match: {
                 $expr: {
                   $eq: [
-                    '$investmentManagerCode',
-                    '$$investmentManager',
+                    '$productCode',
+                    '$$productCode',
                   ],
                 },
               },
             },
+            {
+              $sort: {
+                createdAt: -1,
+              },
+            },
+            {
+              $limit: 1,
+            },
           ],
+          as: 'nav',
+        },
+      },
+      {
+        $addFields: {
+          nav: {
+            $first: '$nav',
+          },
+          investmentManager: {
+            $first: '$investmentManager',
+          },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          'investmentManager._id': 0,
+          'nav._id': 0,
+          'nav.productCode': 0,
+        },
+      },
+    ];
+  }
+
+  async findOneByProductCode(productCode) {
+    const pipeline = ProductRepository.constructGetProductByProductCodePipeline(productCode);
+    this.logger.info('Find product by code with pipeline', JSON.stringify(pipeline));
+
+    const result = await this.collection
+      .aggregate(pipeline)
+      .toArray();
+
+    if (result.length === 0) return {};
+    return result[0];
+  }
+
+  static constructGetProductsPipeline(investmentManager, productCategory) {
+    const pipeline = [
+      {
+        $lookup: {
+          from: 'investmentManagers',
+          localField: 'investmentManager',
+          foreignField: 'investmentManagerCode',
           as: 'investmentManager',
         },
       },
@@ -50,12 +110,7 @@ class ProductRepository {
       pipeline.splice(0, 0, {
         $match:
             {
-              $expr: {
-                $eq: [
-                  '$productCategory',
-                  productCategory,
-                ],
-              },
+              productCategory: { $eq: productCategory },
             },
       });
     }
@@ -63,12 +118,7 @@ class ProductRepository {
       pipeline.splice(pipeline.length, 0, {
         $match:
             {
-              $expr: {
-                $eq: [
-                  '$investmentManager.investmentManagerCode',
-                  investmentManager,
-                ],
-              },
+              'investmentManager.investmentManagerCode': { $eq: investmentManager },
             },
       });
     }
@@ -77,7 +127,7 @@ class ProductRepository {
 
   async findProducts({ investmentManager, productCategory }) {
     const pipeline = ProductRepository
-      .constructProductsPipeline(investmentManager, productCategory);
+      .constructGetProductsPipeline(investmentManager, productCategory);
     this.logger.info('Find products with pipeline', JSON.stringify(pipeline));
 
     return this.collection
