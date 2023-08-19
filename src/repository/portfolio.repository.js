@@ -6,12 +6,9 @@ class PortfolioRepository {
 
   async findByCif(cif) {
     this.logger.info(`Find portfolio by cif: ${cif}`);
-    console.log('DB')
 
     const query = { cif };
-    const portfolios = await this.collection.find(query); 
-
-    return portfolios
+    return this.collection.findOne(query);
   }
 
   async insertOne(portfolioData) {

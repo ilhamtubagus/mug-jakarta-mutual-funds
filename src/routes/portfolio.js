@@ -1,5 +1,5 @@
 const { Router } = require('express');
-const { authenticationMiddleware } = require('../middlewares')
+const { authenticationMiddleware } = require('../middlewares');
 
 const portfolioRouter = Router();
 
@@ -7,8 +7,8 @@ portfolioRouter.get('/portfolio', authenticationMiddleware(), async (req, res, n
   const {
     portfolioService,
     auth: {
-      user
-    }
+      user,
+    },
   } = res.locals;
 
   try {
@@ -25,12 +25,14 @@ portfolioRouter.post('/portfolio', authenticationMiddleware(), async (req, res, 
   const {
     portfolioService,
     auth: {
-      user
-    }
+      user,
+    },
   } = res.locals;
-  const { body: {
-    portfolioName
-  } } = req;
+  const {
+    body: {
+      portfolioName,
+    },
+  } = req;
 
   try {
     const result = await portfolioService.create(user, portfolioName);
