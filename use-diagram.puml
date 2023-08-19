@@ -1,0 +1,18 @@
+@startuml
+left to right direction
+actor Customer
+actor "Payment Gateway"
+rectangle "Mutual Fund" {
+    usecase Login
+    usecase "Browse Catalog Mutual Fund"
+    usecase "Checkout"
+    usecase "Update Transaction Status"
+    usecase "Check Transaction History"
+}
+
+Customer --> Login
+Customer --> "Browse Catalog Mutual Fund"
+Customer --> "Checkout"
+Customer --> "Check Transaction History"
+"Payment Gateway" --> "Update Transaction Status"
+@enduml
