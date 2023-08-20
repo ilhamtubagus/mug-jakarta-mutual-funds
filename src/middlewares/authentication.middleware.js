@@ -32,15 +32,15 @@ const _verifyToken = (token, audience, { secretKey, keyAlgorithm }) => {
 };
 
 const authenticate = (audience = CUSTOMER) => (req, res, next) => {
+  const { config: { jwt: jwtConfig }, logger } = req.app.locals;
   try {
-    const { config: { jwt: jwtConfig } } = req.app.locals;
     const token = _extractToken(req);
     const { userId, aud: role } = _verifyToken(token, audience, jwtConfig);
     const user = { userId, role };
     res.locals.auth = { user };
     return next();
   } catch (e) {
-    req.log.error(e);
+    logger.error(e);
     let error = e;
 
     if (error instanceof JsonWebTokenError || error instanceof TokenExpiredError) {
