@@ -10,67 +10,77 @@ class PortfolioRepository {
         $match: {
           cif,
         },
-      }, {
+      },
+      {
         $lookup: {
           from: 'products',
           localField: 'products.productCode',
           foreignField: 'productCode',
           as: 'fetchedProducts',
-        },
-      }, {
-        $lookup: {
-          from: 'navs',
-          let: {
-            productCode: {
-              $first: '$fetchedProducts.productCode',
-            },
-          },
           pipeline: [
             {
-              $match: {
-                $expr: {
-                  $eq: [
-                    '$productCode', '$$productCode',
-                  ],
+              $lookup: {
+                from: 'navs',
+                localField: 'productCode',
+                foreignField: 'productCode',
+                pipeline: [
+                  {
+                    $sort: {
+                      createdAt: -1,
+                    },
+                  },
+                  {
+                    $limit: 1,
+                  },
+                ],
+                as: 'nav',
+              },
+            },
+            {
+              $addFields: {
+                nav: {
+                  $first: '$nav.currentValue',
                 },
               },
-            }, {
-              $sort: {
-                createdAt: -1,
-              },
-            }, {
-              $limit: 1,
             },
           ],
-          as: 'currentNav',
         },
-      }, {
-        $addFields: {
-          'products.currentNav': {
-            $first: '$currentNav.currentValue',
-          },
-          'products.name': {
-            $first: '$fetchedProducts.name',
-          },
-          'products.productCategory': {
-            $first: '$fetchedProducts.productCategory',
-          },
-          'products.imageUrl': {
-            $first: '$fetchedProducts.imageUrl',
-          },
-          'products.sellFee': {
-            $first: '$fetchedProducts.sellFee',
-          },
-          'products.buyFee': {
-            $first: '$fetchedProducts.buyFee',
-          },
-        },
-      }, {
+      },
+      {
+        $unset: ['_id', 'fetchedProducts._id'],
+      },
+      {
         $project: {
-          currentNav: 0,
-          _id: 0,
-          'products._id': 0,
-          fetchedProducts: 0,
+          cif: 1,
+          portfolioCode: 1,
+          name: 1,
+          createdAt: 1,
+          modifiedAt: 1,
+          products: {
+            $map: {
+              input: '$products',
+              in: {
+                $mergeObjects: [
+                  {
+                    units: '$$this.units',
+                    capitalInvestment:
+                        '$$this.capitalInvestment',
+                  },
+                  {
+                    $arrayElemAt: [
+                      '$fetchedProducts',
+                      {
+                        $indexOfArray: [
+                          '$fetchedProducts.productCode',
+                          '$$this.productCode',
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+            },
+          },
         },
       },
     ];

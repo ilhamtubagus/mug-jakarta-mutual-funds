@@ -11,7 +11,7 @@ const products = [
     createdAt: new Date(),
   },
   {
-    name: 'Schroder Dana equityuity',
+    name: 'Schroder Dana Equity',
     productCode: 'SCHE',
     investmentManager: 'SCH',
     imageUrl: '',

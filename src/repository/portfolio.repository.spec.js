@@ -53,7 +53,7 @@ describe('PortfolioRepository', () => {
               productCode: 'SCHE',
               units: 100,
               currentNav: 1999,
-              name: 'Schroder Dana equityuity',
+              name: 'Schroder Dana Equity',
               productCategory: 'equity',
               imageUrl: '',
               sellFee: 0.2,
