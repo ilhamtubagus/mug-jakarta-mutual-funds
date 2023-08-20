@@ -4,8 +4,7 @@ const CustomError = require('../utils/error.js');
 class App {
   constructor(opts) {
     this.app = express();
-    this.app.locals.logger = opts.logger.logger;
-    this.app.use(opts.logger);
+    this.app.locals.logger = opts.logger;
     this.app.locals.config = opts.config;
     this._initializations = opts.initializations;
     this._teardownServices = opts.teardownServices;
@@ -25,7 +24,8 @@ class App {
     }
 
     this.app.use((err, req, res, next) => {
-      req.log.error(err);
+      const { logger } = req.app.locals;
+      logger.error(err);
 
       if (err instanceof CustomError) {
         return res.status(err.statusCode).json(err);

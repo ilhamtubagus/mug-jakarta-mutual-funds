@@ -3,7 +3,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 const config = {
-  server: { port: process.env.PORT },
+  server: { port: process.env.PORT, appName: process.env.APP_NAME },
   db: {
     password: process.env.DB_PASSWORD,
     username: process.env.DB_USERNAME,

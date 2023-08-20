@@ -1,0 +1,132 @@
+@startuml
+
+entity Account {
+    *email: string
+    *password: string
+    *fulName: string
+    *nik: string
+    *cif: string
+    *dateOfBirth: string
+    *riskProfile: riskProfileType
+    portfolios: Array<Portfolio>
+    createdAt: Date
+    modifiedAt: Date
+}
+
+entity Portfolio {
+    *cif: string
+    *name: string
+    *portfolioCode: string
+    products: Array<PortfolioProduct>
+    createdAt: Date
+    modifiedAt: Date
+}
+
+entity PortfolioProduct {
+    *units: number
+    *product: Product
+    createdAt: Date
+    modifiedAt: Date
+}
+
+entity Product {
+    *name: string
+    *productCode: string
+    *investmentManager: InvestmentManager
+    imageUrl: string
+    *productCategory: ProductCategory
+    sellFee: number
+    buyFee: number
+    tax: number
+    createdAt: Date
+    modifiedAt: Date
+}
+
+entity Nav {
+    *productCode: string
+    *createdAt: Date
+    ytdPercent: number
+    ytdValue: number
+    value5Y: number
+    percent5Y: number
+    value3Y: number
+    percent3Y: number
+    value2Y: number
+    percent2Y: number
+    value1Y: number
+    percent1Y: number
+    value3M: number
+    percent3M: number
+    value1M: number
+    percent1M: number
+    value14D: number
+    percent14D: number
+    value7D: number
+    percent7D: number
+    value3D: number
+    percent3D: number
+    value1D: number
+    percent1D: number
+    *currentValue: number
+}
+
+enum ProductCategory {
+    money market
+    equity
+    fixed income
+}
+
+entity Transaction {
+    *transactionID: string
+    *cif: string
+    amount: string
+    units: string
+    *product: Product
+    *type: TransactionType
+    *portfolioCode: string
+    *status: string
+    failReason: string
+}
+
+entity "PaymentRequest" {
+    *transactionID: string
+    *paymentCode: string
+    *expiredAt: Date
+}
+
+enum TransactionType {
+    BUY
+    SELL
+}
+
+enum TransactionStatus {
+    PENDING
+    SETTLED
+    FAILED
+}
+
+enum RiskProfileType{
+    aggressive
+    moderate
+    moderate conservative
+    conservative
+}
+
+entity InvestmentManager {
+    *investmentManagerCode: string
+    *name: string
+}
+
+Product ||--|| ProductCategory
+Product ||--|{ Nav
+PortfolioProduct ||--|| Product
+Product ||--|| InvestmentManager
+Portfolio ||--o{ PortfolioProduct
+Account ||--o{ Portfolio
+Account ||--o{ Transaction
+Transaction ||--|| TransactionStatus
+Transaction ||--|| TransactionType
+Account ||--|| RiskProfileType
+Transaction ||--|| "PaymentRequest"
+Transaction ||--|| Product
+@enduml

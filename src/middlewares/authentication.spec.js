@@ -9,7 +9,6 @@ describe('authentication', () => {
   });
 
   const mockReq = {
-    log: { error: jest.fn() },
     headers: {},
     app: {
       locals: {
@@ -18,6 +17,9 @@ describe('authentication', () => {
             secretKey: '',
             keyAlgorithm: '',
           },
+        },
+        logger: {
+          error: jest.fn(),
         },
       },
     },

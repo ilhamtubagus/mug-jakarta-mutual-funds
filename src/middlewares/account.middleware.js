@@ -1,5 +1,5 @@
-const AccountRepository = require('../repository/account.repository');
-const AccountService = require('../services/account.service');
+const { AccountRepository } = require('../repository');
+const { AccountService } = require('../services');
 const encryption = require('../utils/encryption');
 
 const accountMiddleware = (req, res, next) => {

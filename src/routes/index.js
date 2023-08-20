@@ -1,5 +1,6 @@
 const account = require('./account.js');
-const portfolio = require('./portfolio.js')
+const product = require('./product');
+const portfolio = require('./portfolio.js');
 
-const routes = [account, portfolio];
+const routes = [account, product, portfolio];
 module.exports = routes;

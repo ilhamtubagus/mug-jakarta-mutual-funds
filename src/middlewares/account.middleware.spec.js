@@ -1,4 +1,4 @@
-const accountMiddleware = require('./account.middleware');
+const { accountMiddleware } = require('./index');
 
 jest.mock('../utils/generator', () => ({
   generateId: () => 'ztYtfy7C1j',

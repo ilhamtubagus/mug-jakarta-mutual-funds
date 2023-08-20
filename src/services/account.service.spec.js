@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const AccountService = require('./account.service');
+const { AccountService } = require('./index');
 const CustomError = require('../utils/error');
 const { accounts: mockAccounts } = require('../fixtures');
 const { TOKEN_AUDIENCE: { CUSTOMER } } = require('../constants');
@@ -83,7 +83,7 @@ describe('AccountService', () => {
   });
 
   describe('#register', () => {
-    it('should throw custom error ISE when general error occured', async () => {
+    it('should invoke create with correct payload', async () => {
       const mockEncryptedPassword = '1ZcSS0lCmqqmzdbofawxp2rtBw';
       mockEncryption.encrypt.mockReturnValueOnce(mockEncryptedPassword);
       const mockAccountPayload = {
