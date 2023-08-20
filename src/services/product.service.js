@@ -7,6 +7,7 @@ class ProductService {
   }
 
   async findOneByProductCode(productCode) {
+    console.log('productService', productCode);
     return this.repository.findOneByProductCode(productCode);
   }
 

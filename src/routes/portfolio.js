@@ -3,7 +3,7 @@ const { authenticationMiddleware } = require('../middlewares');
 
 const portfolioRouter = Router();
 
-portfolioRouter.get('/portfolio', authenticationMiddleware(), async (req, res, next) => {
+portfolioRouter.get('/portfolios', authenticationMiddleware(), async (req, res, next) => {
   const {
     portfolioService,
     auth: {
@@ -21,7 +21,7 @@ portfolioRouter.get('/portfolio', authenticationMiddleware(), async (req, res, n
   }
 });
 
-portfolioRouter.post('/portfolio', authenticationMiddleware(), async (req, res, next) => {
+portfolioRouter.post('/portfolios', authenticationMiddleware(), async (req, res, next) => {
   const {
     portfolioService,
     auth: {
