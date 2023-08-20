@@ -50,4 +50,4 @@ const main = async () => {
   process.on('SIGTERM', await _stopServer(server));
 };
 
-main().then(() => logger.info('Server starting'));
+main().then(() => logger.info('Mutual funds app')).catch((e) => logger.error(e));

@@ -1,15 +1,16 @@
 const { Router } = require('express');
+const { authenticationMiddleware } = require('../middlewares');
 
 const router = Router();
 
-router.get('/products/:productCode', async (req, res, next) => {
+router.get('/products/:productCode', authenticationMiddleware(), async (req, res, next) => {
   const {
     productService,
   } = res.locals;
 
   try {
     const { productCode } = req.params;
-    const result = await productService.finOneByProductCode(productCode);
+    const result = await productService.findOneByProductCode(productCode);
 
     res.status(201).json(result);
     return next();
@@ -18,7 +19,7 @@ router.get('/products/:productCode', async (req, res, next) => {
   }
 });
 
-router.get('/products', async (req, res, next) => {
+router.get('/products', authenticationMiddleware(), async (req, res, next) => {
   const {
     productService,
   } = res.locals;
