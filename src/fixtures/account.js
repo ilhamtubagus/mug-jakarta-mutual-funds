@@ -4,6 +4,6 @@ module.exports = [
     nik: '3302210402990001',
     email: 'ilhamta27@gmail.com',
     riskProfile: 'Conservative',
-    cif: 'abcdef'
+    cif: 'abcdef',
   },
 ];

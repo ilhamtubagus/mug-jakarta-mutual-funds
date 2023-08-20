@@ -6,7 +6,6 @@ class PortfolioService {
 
   async get(user) {
     this.logger.info(`trying to get portfolio for cif: ${user.cif}`);
-    console.log('service')
 
     const { cif } = user;
     const portfolios = await this.repository.findByCif(cif);
@@ -15,16 +14,15 @@ class PortfolioService {
   }
 
   async create(user, portfolioName) {
-    console.log(user);
     const { cif } = user;
-    
+
     this.logger.info(`trying to new portfolio for cif: ${cif}`);
 
-    const ownedPortfolio = await this.repository.find(cif);
+    const ownedPortfolio = await this.repository.findByCif(cif);
     let portfolioCode = '001';
 
     if (ownedPortfolio && ownedPortfolio.length) {
-      portfolioCode = ownedPortfolio.length + 1;
+      portfolioCode = `00${ownedPortfolio.length + 1}`;
     }
 
     const portfolioData = {
@@ -33,10 +31,10 @@ class PortfolioService {
       name: portfolioName,
       products: [],
       createdAt: new Date(),
-      modifiedAt: new Date()
-    }
+      modifiedAt: new Date(),
+    };
 
-    return this.repository.insertOne(portfolioData);
+    return this.repository.create(portfolioData);
   }
 }
 
