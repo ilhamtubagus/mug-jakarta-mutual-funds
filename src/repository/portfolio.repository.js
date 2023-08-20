@@ -33,13 +33,27 @@ class PortfolioRepository {
                     $limit: 1,
                   },
                 ],
-                as: 'nav',
+                as: 'currentNav',
+              },
+            },
+            {
+              $lookup: {
+                from: 'investmentManagers',
+                localField: 'investmentManager',
+                foreignField: 'investmentManagerCode',
+                as: 'investmentManager',
               },
             },
             {
               $addFields: {
-                nav: {
-                  $first: '$nav.currentValue',
+                currentNav: {
+                  $first: '$currentNav.currentValue',
+                },
+                navDate: {
+                  $first: '$currentNav.createdAt',
+                },
+                investmentManager: {
+                  $first: '$investmentManager',
                 },
               },
             },
@@ -47,7 +61,12 @@ class PortfolioRepository {
         },
       },
       {
-        $unset: ['_id', 'fetchedProducts._id'],
+        $unset: [
+          '_id',
+          'fetchedProducts._id',
+          'fetchedProducts.createdAt',
+          'fetchedProducts.investmentManager._id',
+        ],
       },
       {
         $project: {
@@ -56,15 +75,22 @@ class PortfolioRepository {
           name: 1,
           createdAt: 1,
           modifiedAt: 1,
+          investmentManager: 1,
           products: {
             $map: {
               input: '$products',
               in: {
                 $mergeObjects: [
                   {
-                    units: '$$this.units',
-                    capitalInvestment:
-                        '$$this.capitalInvestment',
+                    $arrayElemAt: [
+                      '$$ROOT.products',
+                      {
+                        $indexOfArray: [
+                          '$fetchedProducts.productCode',
+                          '$$this.productCode',
+                        ],
+                      },
+                    ],
                   },
                   {
                     $arrayElemAt: [

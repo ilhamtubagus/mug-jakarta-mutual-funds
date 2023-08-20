@@ -1,6 +1,6 @@
 const { MongoClient } = require('mongodb');
 const PortfolioRepository = require('./portfolio.repository');
-const { portfolios: mockPortfolios, products, navs } = require('../fixtures');
+const { portfolios, products, navs } = require('../fixtures');
 
 describe('PortfolioRepository', () => {
   let connection;
@@ -8,6 +8,9 @@ describe('PortfolioRepository', () => {
   let productCollection;
   let navsCollection;
   let portfolioRepository;
+  let mockPortfolios;
+  let mockNavs;
+  let mockProducts;
 
   beforeAll(async () => {
     connection = await MongoClient.connect(global.__MONGO_URI__, {
@@ -29,9 +32,13 @@ describe('PortfolioRepository', () => {
 
   describe('#findByCif', () => {
     beforeEach((async () => {
-      await portfolioCollection.insertMany([mockPortfolios[0]]);
-      await navsCollection.insertMany(products);
-      await productCollection.insertMany(navs);
+      mockNavs = [...navs];
+      mockPortfolios = [...portfolios];
+      mockProducts = [...products];
+
+      await portfolioCollection.insertMany(mockPortfolios);
+      await navsCollection.insertMany(mockNavs);
+      await productCollection.insertMany(mockProducts);
     }));
 
     afterEach(async () => {
@@ -46,34 +53,36 @@ describe('PortfolioRepository', () => {
           cif: 'HRSTBDHICE',
           portfolioCode: '001',
           name: 'Coba 1',
-          createdAt: '2023-08-20T05:03:04.017Z',
-          modifiedAt: '2023-08-20T05:03:04.017Z',
+          createdAt: new Date('2023-08-10'),
+          modifiedAt: new Date('2023-08-19'),
           products: [
             {
               productCode: 'SCHE',
               units: 100,
-              currentNav: 1999,
+              currentNav: 1900,
               name: 'Schroder Dana Equity',
               productCategory: 'equity',
               imageUrl: '',
               sellFee: 0.2,
               buyFee: 0.2,
+              capitalInvestment: 10000,
+              tax: 0,
+              navDate: new Date('2023-08-23'),
             },
           ],
         },
       ];
 
-      const portfolios = await portfolioRepository.findByCif(mockPortfolios[0].cif);
-
-      expect(portfolios).toStrictEqual(expectedResult);
+      const result = await portfolioRepository.findByCif(mockPortfolios[0].cif);
+      expect(result).toStrictEqual(expectedResult);
     });
 
     it('should return empty array when portfolio for given cif is not exist', async () => {
       const expectedResult = [];
 
-      const portfolios = await portfolioRepository.findByCif('');
+      const result = await portfolioRepository.findByCif('');
 
-      expect(portfolios).toStrictEqual(expectedResult);
+      expect(result).toStrictEqual(expectedResult);
     });
   });
 

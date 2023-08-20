@@ -7,17 +7,18 @@ module.exports = [
     products: [{
       productCode: 'SCHE',
       units: 100,
+      capitalInvestment: 10000,
     }],
-    createdAt: '2023-08-20T05:03:04.017Z',
-    modifiedAt: '2023-08-20T05:03:04.017Z',
+    createdAt: new Date('2023-08-10'),
+    modifiedAt: new Date('2023-08-19'),
   },
   {
     _id: '64e19f3ffd24395427360daf',
-    cif: 'HRSTBDHICE',
+    cif: 'HRSTBDHICZ',
     portfolioCode: '002',
     name: 'Coba 2',
     products: [],
-    createdAt: '2023-08-20T05:06:07.748Z',
-    modifiedAt: '2023-08-20T05:06:07.748Z',
+    createdAt: new Date('2023-08-10'),
+    modifiedAt: new Date('2023-08-19'),
   },
 ];
