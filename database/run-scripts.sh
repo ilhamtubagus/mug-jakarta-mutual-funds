@@ -4,7 +4,7 @@
 export $(xargs < '../.env')
 
 #Construct mongo config
-config="mongodb://${DB_USERNAME}:${DB_PASSWORD}@${DB_INSTANCES}/${DB_NAME}?${DB_OPTIONS}"
+config="mongodb+srv://${DB_USERNAME}:${DB_PASSWORD}@${DB_INSTANCES}/${DB_NAME}?${DB_OPTIONS}"
 
 #Execute mongo script with above config
 echo "Executing script for Mongo config: $config"

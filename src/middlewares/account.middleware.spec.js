@@ -1,4 +1,4 @@
-const accountMiddleware = require('./account.middleware');
+const { accountMiddleware } = require('./index');
 
 describe('#accountMiddleware', () => {
   const mockReq = {

@@ -2,7 +2,7 @@ const _constructConnectionString = ({
   username, password, instances, options, name,
 }) => {
   const credentials = `${username}:${password}`;
-  const connectionString = `mongodb://${credentials}@${instances}/${name}`;
+  const connectionString = `mongodb+srv://${credentials}@${instances}/${name}`;
 
   return options ? `${connectionString}?${options}` : connectionString;
 };

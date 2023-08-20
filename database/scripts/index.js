@@ -6,6 +6,7 @@ load('../src/fixtures/mockNavs.js');
 // accounts collection
 async function defineAccountsSchema() {
   await db.accounts.createIndex({ email: 1 }, { unique: true });
+  await db.accounts.createIndex({ cif: 1 }, { unique: true });
   await db.runCommand({
     collMod: 'accounts',
     validator: {
@@ -153,24 +154,23 @@ async function insertNavs() {
 }
 
 async function definePortfoliosSchema() {
-  await db.createCollection(
-    'portfolios',
+  await db.portfolios.createIndex({ cif: 1, portfolioCode: 1 }, { unique: true });
+  await db.runCommand({
+    collMod: 'portfolios',
+    validator:
     {
-      validator:
-                {
-                  $jsonSchema: {
-                    bsonType: 'object',
-                    required: ['cif', 'name', 'portfolioCode'],
-                    properties: {
-                      cif: {
-                        bsonType: 'string',
-                        minLength: 10,
-                      },
-                    },
-                  },
-                },
+      $jsonSchema: {
+        bsonType: 'object',
+        required: ['cif', 'name', 'portfolioCode'],
+        properties: {
+          cif: {
+            bsonType: 'string',
+            minLength: 10,
+          },
+        },
+      },
     },
-  );
+  });
 }
 
 async function definePortfolioProductsSchema() {
