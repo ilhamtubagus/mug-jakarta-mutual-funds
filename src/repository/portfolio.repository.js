@@ -8,7 +8,7 @@ class PortfolioRepository {
     this.logger.info(`Find portfolio by cif: ${cif}`);
 
     const query = { cif };
-    return this.collection.findOne(query);
+    return this.collection.find(query).toArray();
   }
 
   async insertOne(portfolioData) {
