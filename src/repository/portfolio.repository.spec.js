@@ -1,10 +1,12 @@
 const { MongoClient } = require('mongodb');
 const PortfolioRepository = require('./portfolio.repository');
-const { portfolios: mockPortfolios } = require('../fixtures');
+const { portfolios: mockPortfolios, products, navs } = require('../fixtures');
 
 describe('PortfolioRepository', () => {
   let connection;
-  let collection;
+  let portfolioCollection;
+  let productCollection;
+  let navsCollection;
   let portfolioRepository;
 
   beforeAll(async () => {
@@ -12,9 +14,11 @@ describe('PortfolioRepository', () => {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
-    collection = await connection.db().collection('portfolio');
+    navsCollection = await connection.db().collection('navs');
+    productCollection = await connection.db().collection('products');
+    portfolioCollection = await connection.db().collection('portfolio');
     portfolioRepository = new PortfolioRepository({
-      collection,
+      collection: portfolioCollection,
       logger: { info: jest.fn() },
     });
   });
@@ -25,15 +29,39 @@ describe('PortfolioRepository', () => {
 
   describe('#findByCif', () => {
     beforeAll((async () => {
-      await collection.insertMany(mockPortfolios);
+      await portfolioCollection.insertMany([mockPortfolios[0]]);
+      await navsCollection.insertMany(products);
+      await productCollection.insertMany(navs);
     }));
 
     afterAll(async () => {
-      await collection.drop();
+      await portfolioCollection.drop();
+      await navsCollection.drop();
+      await productCollection.drop();
     });
 
     it('should return portfolios for given cif', async () => {
-      const expectedResult = mockPortfolios;
+      const expectedResult = [
+        {
+          cif: 'HRSTBDHICE',
+          portfolioCode: '001',
+          name: 'Coba 1',
+          createdAt: '2023-08-20T05:03:04.017Z',
+          modifiedAt: '2023-08-20T05:03:04.017Z',
+          products: [
+            {
+              productCode: 'SCHE',
+              units: 100,
+              currentNav: 1999,
+              name: 'Schroder Dana equityuity',
+              productCategory: 'equity',
+              imageUrl: '',
+              sellFee: 0.2,
+              buyFee: 0.2,
+            },
+          ],
+        },
+      ];
 
       const portfolios = await portfolioRepository.findByCif(mockPortfolios[0].cif);
 
@@ -56,7 +84,9 @@ describe('PortfolioRepository', () => {
       const { acknowledged } = await portfolioRepository.create(mockPortfolios[0]);
 
       expect(acknowledged).toBe(true);
-      expect(async () => collection.findOne({ cif: expectedPortfolio.cif })).not.toBeNull();
+      expect(
+        async () => portfolioCollection.findOne({ cif: expectedPortfolio.cif }),
+      ).not.toBeNull();
     });
   });
 });

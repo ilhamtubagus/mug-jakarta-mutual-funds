@@ -4,7 +4,10 @@ module.exports = [
     cif: 'HRSTBDHICE',
     portfolioCode: '001',
     name: 'Coba 1',
-    products: [],
+    products: [{
+      productCode: 'SCHE',
+      units: 100,
+    }],
     createdAt: '2023-08-20T05:03:04.017Z',
     modifiedAt: '2023-08-20T05:03:04.017Z',
   },
