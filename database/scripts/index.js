@@ -167,6 +167,22 @@ async function definePortfoliosSchema() {
             bsonType: 'string',
             minLength: 10,
           },
+          products: {
+            bsonType: ['array'],
+            items: {
+              properties: {
+                productCode: {
+                  bsonType: 'string',
+                },
+                units: {
+                  bsonType: 'double',
+                },
+                capitalInvestment: {
+                  bsonType: 'double',
+                },
+              },
+            },
+          },
         },
       },
     },
