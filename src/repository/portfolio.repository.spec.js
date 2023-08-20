@@ -28,13 +28,13 @@ describe('PortfolioRepository', () => {
   });
 
   describe('#findByCif', () => {
-    beforeAll((async () => {
+    beforeEach((async () => {
       await portfolioCollection.insertMany([mockPortfolios[0]]);
       await navsCollection.insertMany(products);
       await productCollection.insertMany(navs);
     }));
 
-    afterAll(async () => {
+    afterEach(async () => {
       await portfolioCollection.drop();
       await navsCollection.drop();
       await productCollection.drop();
@@ -79,6 +79,8 @@ describe('PortfolioRepository', () => {
 
   describe('#create', () => {
     it('should return the newly created account', async () => {
+      const mockPortfolio = mockPortfolios[0];
+      delete mockPortfolio._id;
       const expectedPortfolio = mockPortfolios[0];
 
       const { acknowledged } = await portfolioRepository.create(mockPortfolios[0]);

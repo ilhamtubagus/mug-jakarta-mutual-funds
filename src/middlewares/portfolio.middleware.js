@@ -1,5 +1,5 @@
-const PortfolioRepository = require('../../repository/portfolio.repository');
-const PortfolioService = require('../../services/portfolio.service');
+const PortfolioRepository = require('../repository/portfolio.repository');
+const PortfolioService = require('../services/portfolio.service');
 
 const portfolioMiddleware = (req, res, next) => {
   const { db, logger } = req.app.locals;
