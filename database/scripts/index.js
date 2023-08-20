@@ -6,6 +6,7 @@ load('../src/fixtures/mockNavs.js');
 // accounts collection
 async function defineAccountsSchema() {
   await db.accounts.createIndex({ email: 1 }, { unique: true });
+  await db.accounts.createIndex({ cif: 1 }, { unique: true });
   await db.runCommand({
     collMod: 'accounts',
     validator: {
