@@ -15,7 +15,7 @@ portfolioRouter.get('/portfolio', authenticationMiddleware(), async (req, res, n
     const result = await portfolioService.get(user);
 
     res.status(200).json(result);
-    return next();
+    next();
   } catch (e) {
     next(e);
   }
@@ -38,7 +38,7 @@ portfolioRouter.post('/portfolio', authenticationMiddleware(), async (req, res, 
     const result = await portfolioService.create(user, portfolioName);
 
     res.status(201).json(result);
-    return next();
+    next();
   } catch (e) {
     next(e);
   }
