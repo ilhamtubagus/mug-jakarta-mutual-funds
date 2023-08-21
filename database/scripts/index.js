@@ -196,21 +196,21 @@ async function defineTransactionsSchema() {
     validator: {
       $jsonSchema: {
         bsonType: 'object',
-        required: ['transactionID', 'cif', 'amount', 'units', 'product', 'type', 'status', 'portfolioCode'],
-      },
-      properties: {
-        product: {
-          bsonType: 'object',
-        },
-        cif: {
-          bsonType: 'string',
-          minLength: 10,
-        },
-        type: {
-          enum: ['BUY', 'SELL'],
-        },
-        status: {
-          enum: ['PENDING', 'SETTLED', 'FAILED'],
+        required: ['transactionID', 'cif', 'product', 'type', 'status', 'portfolioCode'],
+        properties: {
+          product: {
+            bsonType: 'object',
+          },
+          cif: {
+            bsonType: 'string',
+            minLength: 10,
+          },
+          type: {
+            enum: ['BUY', 'SELL'],
+          },
+          status: {
+            enum: ['PENDING', 'SETTLED', 'FAILED'],
+          },
         },
       },
     },
