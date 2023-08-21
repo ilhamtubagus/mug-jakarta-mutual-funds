@@ -4,13 +4,34 @@ class PortfolioService {
     this.logger = logger;
   }
 
-  async get(user) {
+  static calculateGainLoss(portfolios) {
+    return portfolios.map((portfolio) => {
+      const { products } = portfolio;
+      const updateProducts = products.map((product) => {
+        const currentInvestmentValue = product.currentNav * product.units;
+        const unrealizedGainLoss = currentInvestmentValue - product.capitalInvestment;
+        const percentagePotentialReturn = (unrealizedGainLoss / product.capitalInvestment) * 100;
+        return {
+          ...product,
+          currentInvestmentValue,
+          unrealizedGainLoss,
+          percentagePotentialReturn,
+        };
+      });
+      return {
+        ...portfolio,
+        products: updateProducts,
+      };
+    });
+  }
+
+  async getPortfolios(user) {
     this.logger.info(`trying to get portfolio for cif: ${user.cif}`);
 
     const { cif } = user;
     const portfolios = await this.repository.findByCif(cif);
 
-    return portfolios;
+    return PortfolioService.calculateGainLoss(portfolios);
   }
 
   async create(user, portfolioName) {
