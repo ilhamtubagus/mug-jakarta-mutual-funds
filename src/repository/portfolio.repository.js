@@ -10,67 +10,103 @@ class PortfolioRepository {
         $match: {
           cif,
         },
-      }, {
+      },
+      {
         $lookup: {
           from: 'products',
           localField: 'products.productCode',
           foreignField: 'productCode',
           as: 'fetchedProducts',
-        },
-      }, {
-        $lookup: {
-          from: 'navs',
-          let: {
-            productCode: {
-              $first: '$fetchedProducts.productCode',
-            },
-          },
           pipeline: [
             {
-              $match: {
-                $expr: {
-                  $eq: [
-                    '$productCode', '$$productCode',
-                  ],
+              $lookup: {
+                from: 'navs',
+                localField: 'productCode',
+                foreignField: 'productCode',
+                pipeline: [
+                  {
+                    $sort: {
+                      createdAt: -1,
+                    },
+                  },
+                  {
+                    $limit: 1,
+                  },
+                ],
+                as: 'currentNav',
+              },
+            },
+            {
+              $lookup: {
+                from: 'investmentManagers',
+                localField: 'investmentManager',
+                foreignField: 'investmentManagerCode',
+                as: 'investmentManager',
+              },
+            },
+            {
+              $addFields: {
+                currentNav: {
+                  $first: '$currentNav.currentValue',
+                },
+                navDate: {
+                  $first: '$currentNav.createdAt',
+                },
+                investmentManager: {
+                  $first: '$investmentManager',
                 },
               },
-            }, {
-              $sort: {
-                createdAt: -1,
-              },
-            }, {
-              $limit: 1,
             },
           ],
-          as: 'currentNav',
         },
-      }, {
-        $addFields: {
-          'products.currentNav': {
-            $first: '$currentNav.currentValue',
-          },
-          'products.name': {
-            $first: '$fetchedProducts.name',
-          },
-          'products.productCategory': {
-            $first: '$fetchedProducts.productCategory',
-          },
-          'products.imageUrl': {
-            $first: '$fetchedProducts.imageUrl',
-          },
-          'products.sellFee': {
-            $first: '$fetchedProducts.sellFee',
-          },
-          'products.buyFee': {
-            $first: '$fetchedProducts.buyFee',
-          },
-        },
-      }, {
+      },
+      {
+        $unset: [
+          '_id',
+          'fetchedProducts._id',
+          'fetchedProducts.createdAt',
+          'fetchedProducts.investmentManager._id',
+        ],
+      },
+      {
         $project: {
-          currentNav: 0,
-          _id: 0,
-          'products._id': 0,
-          fetchedProducts: 0,
+          cif: 1,
+          portfolioCode: 1,
+          name: 1,
+          createdAt: 1,
+          modifiedAt: 1,
+          investmentManager: 1,
+          products: {
+            $map: {
+              input: '$products',
+              in: {
+                $mergeObjects: [
+                  {
+                    $arrayElemAt: [
+                      '$$ROOT.products',
+                      {
+                        $indexOfArray: [
+                          '$fetchedProducts.productCode',
+                          '$$this.productCode',
+                        ],
+                      },
+                    ],
+                  },
+                  {
+                    $arrayElemAt: [
+                      '$fetchedProducts',
+                      {
+                        $indexOfArray: [
+                          '$fetchedProducts.productCode',
+                          '$$this.productCode',
+                        ],
+                      },
+                    ],
+                  },
+                ],
+              },
+            },
+          },
         },
       },
     ];
