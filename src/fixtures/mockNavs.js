@@ -40,7 +40,7 @@ const navs = [
   },
   {
     productCode: 'SCHE',
-    createdAt: new Date(),
+    createdAt: new Date('2023-08-23'),
     ytdPercent: 5.65,
     ytdValue: 238.41,
     value5Y: 1236.67,
@@ -60,7 +60,7 @@ const navs = [
   },
   {
     productCode: 'SCHE',
-    createdAt: new Date(),
+    createdAt: new Date('2023-08-22'),
     ytdPercent: 5.65,
     ytdValue: 238.41,
     value5Y: 1236.67,

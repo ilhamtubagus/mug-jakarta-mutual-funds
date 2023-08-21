@@ -167,6 +167,22 @@ async function definePortfoliosSchema() {
             bsonType: 'string',
             minLength: 10,
           },
+          products: {
+            bsonType: ['array'],
+            items: {
+              properties: {
+                productCode: {
+                  bsonType: 'string',
+                },
+                units: {
+                  bsonType: 'double',
+                },
+                capitalInvestment: {
+                  bsonType: 'double',
+                },
+              },
+            },
+          },
         },
       },
     },
@@ -194,7 +210,7 @@ async function defineTransactionsSchema() {
     validator: {
       $jsonSchema: {
         bsonType: 'object',
-        required: ['transactionID', 'cif', 'amount', 'units', 'product', 'type', 'status'],
+        required: ['transactionID', 'cif', 'amount', 'units', 'product', 'type', 'status', 'portfolioCode'],
       },
       properties: {
         product: {

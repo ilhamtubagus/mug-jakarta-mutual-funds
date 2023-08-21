@@ -78,7 +78,7 @@ describe('authentication', () => {
       const mockToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjMiLCJpYXQiOjE2OTE4OTY5MDcsImF1ZCI6IkNVU1RPTUVSIn0.KPtQWwkyp5sdLSrUoK0GDxC0DsdKERIL0Rpkt-h8XHo';
       mockReq.headers.authorization = `bearer ${mockToken}`;
       jest.spyOn(jwt, 'verify').mockReturnValueOnce({
-        userId: '123',
+        cif: '123',
         aud: 'ADMIN',
       });
 
@@ -93,7 +93,7 @@ describe('authentication', () => {
       const mockToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjMiLCJpYXQiOjE2OTE4OTY5MDcsImF1ZCI6IkNVU1RPTUVSIn0.KPtQWwkyp5sdLSrUoK0GDxC0DsdKERIL0Rpkt-h8XHo';
       mockReq.headers.authorization = `bearer ${mockToken}`;
       jest.spyOn(jwt, 'verify').mockReturnValueOnce({
-        userId: '123',
+        cif: '123',
         aud: 'ADMIN',
       });
 
@@ -108,7 +108,7 @@ describe('authentication', () => {
       const mockToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiIxMjMiLCJpYXQiOjE2OTE4OTY5MDcsImF1ZCI6IkNVU1RPTUVSIn0.KPtQWwkyp5sdLSrUoK0GDxC0DsdKERIL0Rpkt-h8XHo';
       mockReq.headers.authorization = `bearer ${mockToken}`;
       jest.spyOn(jwt, 'verify').mockReturnValueOnce({
-        userId: '123',
+        cif: '123',
         aud: 'CUSTOMER',
       });
 
@@ -116,7 +116,7 @@ describe('authentication', () => {
 
       expect(mockRes.locals.auth).toStrictEqual({
         user: {
-          userId: '123',
+          cif: '123',
           role: 'CUSTOMER',
         },
       });

@@ -6,7 +6,7 @@ const App = require('./app.js');
 const config = require('../../config.js');
 const { connectToDb, disconnectDb } = require('./db.js');
 const routes = require('../routes/index.js');
-const { accountMiddleware, productMiddleware } = require('../middlewares');
+const { accountMiddleware, productMiddleware, portfolioMiddleware } = require('../middlewares');
 
 const _dbTearDown = async (expressApp) => {
   await disconnectDb(expressApp);
@@ -20,7 +20,7 @@ const logger = createLogger({ name: config.server.appName, level: config.logger.
 
 const main = async () => {
   const middlewares = {
-    pre: [bodyParser.json(), accountMiddleware, productMiddleware],
+    pre: [bodyParser.json(), accountMiddleware, productMiddleware, portfolioMiddleware],
     post: [],
   };
 

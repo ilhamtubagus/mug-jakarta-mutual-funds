@@ -1,14 +1,11 @@
-const { accountMiddleware } = require('./index');
+const portfolioMiddleware = require('./portfolio.middleware');
 
-jest.mock('../utils/generator', () => ({
-  generateId: () => 'ztYtfy7C1j',
-}));
-
-describe('#accountMiddleware', () => {
+describe('#portfolioMiddleware', () => {
   const mockReq = {
     app: {
       locals: {
         config: {},
+        logger: {},
         db: {
           collection: jest.fn(),
         },
@@ -20,8 +17,8 @@ describe('#accountMiddleware', () => {
   };
   const mockNext = jest.fn();
   it('should assign account service into app.locals', () => {
-    accountMiddleware(mockReq, mockRes, mockNext);
+    portfolioMiddleware(mockReq, mockRes, mockNext);
 
-    expect(mockRes.locals.accountService).toBeDefined();
+    expect(mockRes.locals.portfolioService).toBeDefined();
   });
 });

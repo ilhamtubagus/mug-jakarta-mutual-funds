@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const CustomError = require('../utils/error');
 const { TOKEN_AUDIENCE: { CUSTOMER } } = require('../constants');
+const { generateId } = require('../utils/generator');
 
 class AccountService {
   constructor({
@@ -38,7 +39,7 @@ class AccountService {
     }
 
     const jwtPayload = {
-      userId: account._id,
+      cif: account.cif,
       email: account.email,
     };
 
@@ -52,8 +53,10 @@ class AccountService {
     const encryptedPassword = this.encryption.encrypt(payload.password, secret);
     const account = {
       ...payload,
+      cif: generateId(),
       password: encryptedPassword,
     };
+
     return this.repository.create(account);
   }
 }

@@ -35,8 +35,8 @@ const authenticate = (audience = CUSTOMER) => (req, res, next) => {
   const { config: { jwt: jwtConfig }, logger } = req.app.locals;
   try {
     const token = _extractToken(req);
-    const { userId, aud: role } = _verifyToken(token, audience, jwtConfig);
-    const user = { userId, role };
+    const { cif, aud: role } = _verifyToken(token, audience, jwtConfig);
+    const user = { cif, role };
     res.locals.auth = { user };
     return next();
   } catch (e) {
