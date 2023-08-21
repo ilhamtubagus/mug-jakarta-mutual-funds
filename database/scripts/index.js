@@ -19,7 +19,7 @@ async function defineAccountsSchema() {
         {
           $jsonSchema: {
             bsonType: 'object',
-            required: ['email', 'password', 'fullName', 'dateOfBirth', 'nik', 'cif'],
+            required: ['email', 'password', 'fullName', 'dateOfBirth', 'nik', 'cif', 'riskProfile'],
             properties: {
               password: {
                 bsonType: 'string',
