@@ -189,20 +189,6 @@ async function definePortfoliosSchema() {
   });
 }
 
-async function definePortfolioProductsSchema() {
-  await db.createCollection(
-    'portfolioProducts',
-    {
-      validator: {
-        $jsonSchema: {
-          bsonType: 'object',
-          required: ['units', 'product'],
-        },
-      },
-    },
-  );
-}
-
 async function defineTransactionsSchema() {
   await db.transactions.createIndex({ transactionID: 1 }, { unique: true });
   await db.runCommand({
@@ -251,7 +237,6 @@ async function run() {
   await defineProductsSchema();
   await defineNavsSchema();
   await definePortfoliosSchema();
-  await definePortfolioProductsSchema();
   await defineTransactionsSchema();
   await definePaymentRequestSchema();
   await insertInvestmentManagers();
