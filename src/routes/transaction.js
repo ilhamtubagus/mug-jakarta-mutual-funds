@@ -14,8 +14,6 @@ transactionRouter.post('/transactions', authenticationMiddleware(), async (req, 
     body: payload,
   } = req;
 
-  console.log(res.locals);
-
   try {
     const result = await transactionService.create(user, payload);
 

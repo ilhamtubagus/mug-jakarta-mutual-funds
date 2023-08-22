@@ -13,12 +13,12 @@ class AccountService {
     this.config = config;
   }
 
-  _generateToken(payload) {
+  _generateToken(payload, role) {
     const { jwt: { secretKey, keyAlgorithm, expiry } } = this.config;
     return jwt.sign(
       payload,
       secretKey,
-      { expiresIn: expiry, algorithm: keyAlgorithm, audience: CUSTOMER },
+      { expiresIn: expiry, algorithm: keyAlgorithm, audience: role ?? CUSTOMER },
     );
   }
 
@@ -43,7 +43,7 @@ class AccountService {
       email: account.email,
     };
 
-    return this._generateToken(jwtPayload);
+    return this._generateToken(jwtPayload, account.role);
   }
 
   async register(payload) {

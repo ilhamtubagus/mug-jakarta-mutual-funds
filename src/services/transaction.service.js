@@ -1,22 +1,23 @@
+const moment = require('moment');
 const CustomError = require('../utils/error');
 const { generateId } = require('../utils/generator');
 const constants = require('../constants');
 
-const { TRANSACTION_TYPE: { SELL, BUY }, TRANSACTION_STATUS: { PENDING } } = constants;
+const { TRANSACTION_TYPE: { BUY }, TRANSACTION_STATUS: { PENDING, SETTLED } } = constants;
 
 class TransactionService {
   constructor({
-    repository, logger, paymentService, productService,
+    repository, logger, paymentRepository, productService,
   }) {
     this.repository = repository;
     this.logger = logger;
-    this.paymentService = paymentService;
+    this.paymentRepository = paymentRepository;
     this.productService = productService;
   }
 
   static _calculatePurchaseUnit(amount, nav) {
     const units = amount / nav;
-    return units.toFixed(4).toString();
+    return units.toFixed(4);
   }
 
   static _constructProductData(product) {
@@ -31,17 +32,16 @@ class TransactionService {
     const { amount, type, portfolioCode } = payload;
     const { nav } = product;
     const units = TransactionService._calculatePurchaseUnit(amount, nav);
-    console.log('units', units);
 
     return {
-      cif,
       transactionID: generateId(15),
-      amount: amount.toFixed(2),
+      cif,
+      amount,
       units,
       product,
       type,
-      portfolioCode,
       status: PENDING,
+      portfolioCode,
     };
   }
 
@@ -51,15 +51,20 @@ class TransactionService {
     const constructedProduct = TransactionService._constructProductData(product);
     const transactionData = TransactionService
       ._constructBuyTransactionData(cif, payload, constructedProduct);
+    const paymentRequestData = {
+      transactionID: transactionData.transactionID,
+      paymentCode: generateId(15),
+      expiredAt: moment().add(1, 'd').toDate(),
+    };
 
     this.logger.info(`Trying to create transaction and payment request for cif: ${cif}`);
 
-    const [, paymentRequest] = await Promise.all([
+    await Promise.all([
       this.repository.createTransaction(transactionData),
-      this.paymentService.requestPayment(transactionData.transactionID),
+      this.paymentRepository.createPaymentRequest(paymentRequestData),
     ]);
 
-    return paymentRequest;
+    return paymentRequestData;
   }
 
   async create(user, payload) {
@@ -68,7 +73,6 @@ class TransactionService {
 
     const transactionHandler = {
       [BUY]: async () => this._handleBuyTransaction(cif, payload),
-      [SELL]: () => { console.log('jancuk'); },
     };
 
     const processTransaction = transactionHandler[`${type}`];
@@ -80,6 +84,15 @@ class TransactionService {
     this.logger.info(`Creating ${type} transaction for cif: ${cif}`);
 
     return processTransaction();
+  }
+
+  async approveTransaction(transactionID) {
+    const transactionData = await this.repository.approveTransaction(transactionID, SETTLED);
+    const {
+      cif, units, portfolioCode, product: { productCode },
+    } = transactionData;
+
+    await this.portfolioService.update(cif, portfolioCode, productCode, units);
   }
 }
 

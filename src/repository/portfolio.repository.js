@@ -125,6 +125,25 @@ class PortfolioRepository {
 
     return this.collection.insertOne(portfolioData);
   }
+
+  async update(cif, portfolioCode, productCode, units) {
+    const filter = {
+      cif,
+      portfolioCode,
+    };
+
+    const update = {
+      $inc: { 'products.$[prod].units': units },
+      $addToSet: { products: { productCode, units } },
+      $set: { modifiedAt: new Date() },
+    };
+
+    const options = {
+      arrayFilters: [{ 'prod.productCode': productCode }],
+    };
+
+    return this.collection.updateOne(filter, update, options);
+  }
 }
 
 module.exports = PortfolioRepository;

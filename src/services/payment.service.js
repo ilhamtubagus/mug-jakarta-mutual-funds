@@ -1,29 +1,44 @@
-const moment = require('moment');
-const { generateId } = require('../utils/generator');
 const CustomError = require('../utils/error');
+const constants = require('../constants');
+
+const { TRANSACTION_STATUS: { SETTLED, FAILED } } = constants;
 
 class PaymentService {
   constructor({
-    repository, logger,
+    repository, logger, transactionService,
   }) {
     this.repository = repository;
     this.logger = logger;
+    this.transactionService = transactionService;
   }
 
-  async requestPayment(transactionID) {
-    const paymentRequestData = {
-      transactionID,
-      paymentCode: generateId(15),
-      expiredAt: moment().add(1, 'd').toDate(),
-    };
+  async _handleSettledPayment(paymentCode) {
+    const paymentRequest = await this.repository.findOne(paymentCode);
 
-    const { acknowledged } = await this.repository.createPaymentRequest(paymentRequestData);
-
-    if (!acknowledged) {
-      throw new CustomError('Failed to create payment request');
+    if (!paymentRequest) {
+      throw new CustomError('Invalid Payment Code', 400);
     }
 
-    return paymentRequestData;
+    await this.transactionService.approveTransaction(paymentRequest.transactionID);
+  }
+
+  async processPayment(payload) {
+    const { status, paymentCode } = payload;
+
+    const paymentHandler = {
+      [SETTLED]: async () => this._handleSettledPayment(payload),
+      [FAILED]: () => {},
+    };
+
+    const processPayment = paymentHandler[`${status}`];
+
+    if (!processPayment) {
+      throw new CustomError('Invalid payment status', 400);
+    }
+
+    this.logger.info(`Handling ${status} payment with paymentCode: ${paymentCode}`);
+
+    return processPayment();
   }
 }
 

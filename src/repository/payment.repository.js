@@ -11,6 +11,12 @@ class PaymentRepository {
 
     return this.collection.insertOne(paymentRequestData);
   }
+
+  async findOne(paymentCode) {
+    this.logger.info(`Finding payment request with paymentCode ${paymentCode}`);
+
+    return this.collection.findOne(paymentCode);
+  }
 }
 
 module.exports = PaymentRepository;

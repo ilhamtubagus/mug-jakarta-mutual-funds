@@ -36,6 +36,10 @@ class PortfolioService {
 
     return this.repository.create(portfolioData);
   }
+
+  async update(cif, portfolioCode, productCode, units) {
+    return this.repository.update(cif, portfolioCode, productCode, units);
+  }
 }
 
 module.exports = PortfolioService;

@@ -17,6 +17,15 @@ class TransactionRepository {
 
     return this.collection.insertOne(transaction);
   }
+
+  async updateStatus(transactionID, status) {
+    this.logger.info(`Approve transaction with transactionID ${transactionID}`);
+    const query = { transactionID };
+    const update = { $set: { status } };
+    const options = { new: true };
+
+    return this.collection.findOneAndUpdate(query, update, options);
+  }
 }
 
 module.exports = TransactionRepository;

@@ -1,15 +1,11 @@
 const { TransactionRepository, PaymentRepository, ProductRepository } = require('../repository');
-const { TransactionService, PaymentService, ProductService } = require('../services');
+const { TransactionService, ProductService } = require('../services');
 
 const transactionMiddleware = (req, res, next) => {
   const { db, logger } = req.app.locals;
 
-  const paymentCollection = db.collection('paymentRequest');
+  const paymentCollection = db.collection('paymentRequests');
   const paymentRepository = new PaymentRepository({ collection: paymentCollection, logger });
-  const paymentService = new PaymentService({
-    repository: paymentRepository,
-    logger,
-  });
 
   const productCollection = db.collection('products');
   const productRepository = new ProductRepository({ collection: productCollection, logger });
@@ -24,7 +20,7 @@ const transactionMiddleware = (req, res, next) => {
     repository: transactionRepository,
     logger,
     productService,
-    paymentService,
+    paymentRepository,
   });
 
   Object.assign(res.locals, { transactionService });
