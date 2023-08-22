@@ -155,6 +155,7 @@ async function insertNavs() {
 
 async function definePortfoliosSchema() {
   await db.portfolios.createIndex({ cif: 1, portfolioCode: 1 }, { unique: true });
+  await db.portfolios.createIndex({ cif: 1 });
   await db.runCommand({
     collMod: 'portfolios',
     validator:
