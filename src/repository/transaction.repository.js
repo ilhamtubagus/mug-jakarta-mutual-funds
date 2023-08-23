@@ -18,8 +18,14 @@ class TransactionRepository {
     return this.collection.insertOne(transaction);
   }
 
+  async findOne(transactionID) {
+    this.logger.info(`Finding transaction with transactionID ${transactionID}`);
+
+    return this.collection.findOne({ transactionID });
+  }
+
   async updateStatus(transactionID, status) {
-    this.logger.info(`Approve transaction with transactionID ${transactionID}`);
+    this.logger.info(`Update status for transactionID ${transactionID} with status ${status}`);
     const query = { transactionID };
     const update = { $set: { status } };
     const options = { new: true };

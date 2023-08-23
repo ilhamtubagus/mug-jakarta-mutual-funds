@@ -6,7 +6,7 @@ const { TOKEN_AUDIENCE: { PAYMENT_PROCESSOR } } = constants;
 
 const paymentRouter = Router();
 
-paymentRouter.post('/transactions', authenticationMiddleware(PAYMENT_PROCESSOR), async (req, res, next) => {
+paymentRouter.post('/payments', authenticationMiddleware(PAYMENT_PROCESSOR), async (req, res, next) => {
   const {
     paymentService,
   } = res.locals;

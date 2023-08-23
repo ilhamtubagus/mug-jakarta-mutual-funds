@@ -26,7 +26,7 @@ class PaymentService {
     const { status, paymentCode } = payload;
 
     const paymentHandler = {
-      [SETTLED]: async () => this._handleSettledPayment(payload),
+      [SETTLED]: async () => this._handleSettledPayment(paymentCode),
       [FAILED]: () => {},
     };
 

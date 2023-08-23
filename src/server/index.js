@@ -31,8 +31,8 @@ const main = async () => {
       accountMiddleware,
       productMiddleware,
       portfolioMiddleware,
-      paymentMiddleware,
       transactionMiddleware,
+      paymentMiddleware,
     ],
     post: [],
   };

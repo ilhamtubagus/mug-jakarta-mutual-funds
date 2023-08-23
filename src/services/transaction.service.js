@@ -7,12 +7,13 @@ const { TRANSACTION_TYPE: { BUY }, TRANSACTION_STATUS: { PENDING, SETTLED } } = 
 
 class TransactionService {
   constructor({
-    repository, logger, paymentRepository, productService,
+    repository, logger, paymentRepository, productService, portfolioService,
   }) {
     this.repository = repository;
     this.logger = logger;
     this.paymentRepository = paymentRepository;
     this.productService = productService;
+    this.portfolioService = portfolioService;
   }
 
   static _calculatePurchaseUnit(amount, nav) {
@@ -87,12 +88,18 @@ class TransactionService {
   }
 
   async approveTransaction(transactionID) {
-    const transactionData = await this.repository.approveTransaction(transactionID, SETTLED);
-    const {
-      cif, units, portfolioCode, product: { productCode },
-    } = transactionData;
+    const transaction = await this.repository.findOne(transactionID);
 
-    await this.portfolioService.update(cif, portfolioCode, productCode, units);
+    if (transaction.status === SETTLED) {
+      throw new CustomError('Transaction already approved', 400);
+    }
+    const { value: transactionData } = await this.repository.updateStatus(transactionID, SETTLED);
+    const {
+      cif, units, portfolioCode, product: { productCode }, amount,
+    } = transactionData;
+    const productData = { productCode, units, capitalInvestment: amount };
+
+    await this.portfolioService.updateOwnedProduct(cif, portfolioCode, productData);
   }
 }
 

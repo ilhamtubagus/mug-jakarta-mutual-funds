@@ -15,7 +15,7 @@ class PaymentRepository {
   async findOne(paymentCode) {
     this.logger.info(`Finding payment request with paymentCode ${paymentCode}`);
 
-    return this.collection.findOne(paymentCode);
+    return this.collection.findOne({ paymentCode });
   }
 }
 
