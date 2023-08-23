@@ -144,6 +144,11 @@ async function defineNavsSchema() {
       $jsonSchema: {
         bsonType: 'object',
         required: ['currentValue', 'productCode', 'createdAt'],
+        properties: {
+          currentValue: {
+            bsonType: 'number',
+          },
+        },
       },
     },
   });
@@ -176,10 +181,10 @@ async function definePortfoliosSchema() {
                   bsonType: 'string',
                 },
                 units: {
-                  bsonType: 'double',
+                  bsonType: 'number',
                 },
                 capitalInvestment: {
-                  bsonType: 'double',
+                  bsonType: 'number',
                 },
               },
             },
