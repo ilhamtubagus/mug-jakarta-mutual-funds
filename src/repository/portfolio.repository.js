@@ -136,7 +136,6 @@ class PortfolioRepository {
   }
 
   async updateOne(cif, portfolioCode, updatedProducts) {
-    console.log(updatedProducts);
     const filter = {
       cif,
       portfolioCode,

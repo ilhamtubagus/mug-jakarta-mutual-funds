@@ -1,7 +1,7 @@
 const CustomError = require('../utils/error');
 const constants = require('../constants');
 
-const { TRANSACTION_STATUS: { SETTLED, FAILED } } = constants;
+const { TRANSACTION_STATUS: { SETTLED } } = constants;
 
 class PaymentService {
   constructor({
@@ -27,7 +27,6 @@ class PaymentService {
 
     const paymentHandler = {
       [SETTLED]: async () => this._handleSettledPayment(paymentCode),
-      [FAILED]: () => {},
     };
 
     const processPayment = paymentHandler[`${status}`];

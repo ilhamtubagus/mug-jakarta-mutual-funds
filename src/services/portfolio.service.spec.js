@@ -12,6 +12,8 @@ describe('PortfolioService', () => {
     mockRepository = {
       findByCif: jest.fn(),
       create: jest.fn(),
+      findOne: jest.fn(),
+      updateOne: jest.fn(),
     };
     mockLogger = {
       info: jest.fn(),
@@ -81,6 +83,28 @@ describe('PortfolioService', () => {
       await portfolioService.create(user, portfolioName);
 
       expect(mockRepository.create).toBeCalledWith(expectedData);
+    });
+  });
+
+  describe('#updateOwnedProduct', () => {
+    it('should save updated portfolio to repository', async () => {
+      mockRepository.findOne.mockResolvedValue(mockPortfolios[0]);
+      const { cif, portfolioCode } = mockPortfolios[0];
+      const productData = {
+        productCode: 'SCHE',
+        units: 10,
+        capitalInvestment: 1000,
+      };
+      const updatedProduct = [{
+        productCode: 'SCHE',
+        units: 110,
+        capitalInvestment: 11000,
+
+      }];
+      await portfolioService.updateOwnedProduct(cif, portfolioCode, productData);
+
+      await expect(mockRepository.updateOne)
+        .toBeCalledWith(...[cif, portfolioCode, updatedProduct]);
     });
   });
 });

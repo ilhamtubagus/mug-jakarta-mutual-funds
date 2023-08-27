@@ -34,4 +34,17 @@ describe('PortfolioRepository', () => {
       expect(acknowledged).toBe(true);
     });
   });
+
+  // describe('#findOne', () => {
+  //   it('should return found payment data', async () => {
+  //     const paymentRequestData = {
+  //       transactionID: '',
+  //       paymentCode: '',
+  //       expiredAt: new Date(),
+  //     };
+  //     const result = await paymentRepository.findOne(paymentRequestData);
+
+  //     expect(acknowledged).toBe(true);
+  //   });
+  // });
 });
