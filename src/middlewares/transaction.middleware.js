@@ -4,7 +4,9 @@ const {
 const { TransactionService } = require('../services');
 
 const transactionMiddleware = (req, res, next) => {
-  const { db, logger } = req.app.locals;
+  const {
+    db, logger, config, mongoClient,
+  } = req.app.locals;
   const { productService, portfolioService } = res.locals;
 
   const paymentCollection = db.collection('paymentRequests');
@@ -18,6 +20,8 @@ const transactionMiddleware = (req, res, next) => {
     paymentRepository,
     productService,
     portfolioService,
+    config,
+    mongoClient,
   });
 
   Object.assign(res.locals, { transactionService });

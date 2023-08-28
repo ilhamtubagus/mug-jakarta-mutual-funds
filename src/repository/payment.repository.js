@@ -4,12 +4,16 @@ class PaymentRepository {
     this.logger = logger;
   }
 
-  async createPaymentRequest(paymentRequestData) {
+  async create(paymentRequestData, session) {
     const { transactionID } = paymentRequestData;
 
     this.logger.info(`Create payment request for transactionID ${transactionID}`);
 
-    return this.collection.insertOne(paymentRequestData);
+    const options = {
+      ...(session) && { session },
+    };
+
+    return this.collection.insertOne(paymentRequestData, options);
   }
 
   async findOne(paymentCode) {

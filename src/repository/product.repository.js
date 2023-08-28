@@ -79,7 +79,7 @@ class ProductRepository {
       .aggregate(pipeline)
       .toArray();
 
-    if (result.length === 0) return {};
+    if (result.length === 0) return null;
     return result[0];
   }
 

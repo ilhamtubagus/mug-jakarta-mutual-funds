@@ -46,7 +46,25 @@ describe('TransactionRepository', () => {
         status: '',
         portfolioCode: '',
       };
-      const { acknowledged } = await transactionRepository.createTransaction(transactionData);
+      const { acknowledged } = await transactionRepository.create(transactionData);
+
+      expect(acknowledged).toBe(true);
+    });
+
+    it('should return the acknowledged and success inserting the document when session is supplied', async () => {
+      const transactionData = {
+        transactionID: '',
+        cif: '',
+        amount: '',
+        units: '',
+        product: '',
+        type: '',
+        status: '',
+        portfolioCode: '',
+      };
+      const session = await connection.startSession();
+
+      const { acknowledged } = await transactionRepository.create(transactionData, session);
 
       expect(acknowledged).toBe(true);
     });
@@ -62,19 +80,21 @@ describe('TransactionRepository', () => {
     });
   });
 
-  describe('#updateStatus', () => {
+  describe('#update', () => {
     it('should update transaction data given transactionID and status', async () => {
-      const insertedData = await transactionRepository.collection.findOne({ transactionID: 'GT1LXXJW9UHZL1P' });
-      console.log({ insertedData });
-      const { transactionID } = mockTransactions[0];
+      const transaction = await transactionRepository.collection.findOne({ transactionID: 'GT1LXXJW9UHZL1P' });
+      const { transactionID } = transaction;
       const expectedResult = {
-        ...mockTransactions[0],
+        ...transaction,
         status: 'SETTLED',
       };
 
-      const result = await transactionRepository.updateStatus(transactionID, 'SETTLED');
-      console.log(result);
+      delete expectedResult.modifiedAt;
 
+      const result = await transactionRepository.update(transactionID, { status: 'SETTLED' });
+
+      expect(expectedResult.modifiedAt).not.toBe(result.value.modifiedAt);
+      delete result.value.modifiedAt;
       expect(result.value).toStrictEqual(expectedResult);
     });
   });

@@ -4,7 +4,7 @@ class TransactionRepository {
     this.logger = logger;
   }
 
-  async createTransaction(transactionData) {
+  async create(transactionData, session = null) {
     const { transactionID, cif } = transactionData;
 
     this.logger.info(`Create transaction with transactionID ${transactionID} for cif ${cif}`, transactionData);
@@ -15,7 +15,11 @@ class TransactionRepository {
       createdAt: new Date(),
     };
 
-    return this.collection.insertOne(transaction);
+    const options = {
+      ...(session) && { session },
+    };
+
+    return this.collection.insertOne(transaction, options);
   }
 
   async findOne(transactionID) {
@@ -24,11 +28,11 @@ class TransactionRepository {
     return this.collection.findOne({ transactionID });
   }
 
-  async updateStatus(transactionID, status) {
-    this.logger.info(`Update status for transactionID ${transactionID} with status ${status}`);
+  async update(transactionID, payload) {
+    this.logger.info(`Update status for transactionID ${transactionID} with status ${payload.status}`);
     const query = { transactionID };
-    const update = { $set: { status } };
-    const options = { new: true };
+    const update = { $set: { ...payload }, $currentDate: { modifiedAt: true } };
+    const options = { returnDocument: 'after' };
 
     return this.collection.findOneAndUpdate(query, update, options);
   }

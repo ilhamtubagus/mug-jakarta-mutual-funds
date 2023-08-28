@@ -22,6 +22,7 @@ const config = {
   encryption: {
     secret: process.env.ENC_SECRET || 10,
   },
+  paymentExpiration: process.env.PAYMENT_EXPIRATION || 1,
 };
 
 module.exports = config;

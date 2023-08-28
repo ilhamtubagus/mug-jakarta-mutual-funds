@@ -144,7 +144,11 @@ class PortfolioRepository {
       $set: { products: updatedProducts },
     };
 
-    return this.collection.updateOne(filter, update);
+    const options = {
+      returnDocument: 'after',
+    };
+
+    return this.collection.updateOne(filter, update, options);
   }
 }
 

@@ -1,4 +1,5 @@
 const express = require('express');
+const { MongoError } = require('mongodb');
 const CustomError = require('../utils/error.js');
 
 class App {
@@ -30,6 +31,11 @@ class App {
       if (err instanceof CustomError) {
         return res.status(err.statusCode).json(err);
       }
+
+      if (err instanceof MongoError) {
+        return res.status(500).json({ message: 'Database error' });
+      }
+
       return res.status(500).json(err);
     });
   }

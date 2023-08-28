@@ -6,13 +6,11 @@ class PortfolioService {
     this.logger = logger;
   }
 
-  async get(user) {
-    this.logger.info(`trying to get portfolio for cif: ${user.cif}`);
+  async find(user) {
+    this.logger.info(`Trying to get portfolio for cif: ${user.cif}`);
 
     const { cif } = user;
-    const portfolios = await this.repository.findByCif(cif);
-
-    return portfolios;
+    return this.repository.findByCif(cif);
   }
 
   async create(user, portfolioName) {
@@ -45,6 +43,10 @@ class PortfolioService {
     const updatedProduct = mapPortfolioProduct(ownedProducts, productData);
 
     return this.repository.updateOne(cif, portfolioCode, updatedProduct);
+  }
+
+  async findOne(cif, portfolioCode) {
+    return this.repository.findOne(cif, portfolioCode);
   }
 }
 

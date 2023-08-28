@@ -8,6 +8,9 @@ describe('#transactionMiddleware', () => {
         db: {
           collection: jest.fn(),
         },
+        config: {
+          paymentExpiration: 1,
+        },
       },
     },
   };

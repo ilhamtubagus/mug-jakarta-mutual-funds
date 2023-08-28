@@ -10,7 +10,6 @@ const {
   accountMiddleware,
   productMiddleware,
   portfolioMiddleware,
-  paymentMiddleware,
   transactionMiddleware,
 } = require('../middlewares');
 
@@ -32,7 +31,6 @@ const main = async () => {
       productMiddleware,
       portfolioMiddleware,
       transactionMiddleware,
-      paymentMiddleware,
     ],
     post: [],
   };

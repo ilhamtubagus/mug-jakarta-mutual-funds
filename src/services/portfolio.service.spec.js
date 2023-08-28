@@ -30,15 +30,15 @@ describe('PortfolioService', () => {
     jest.clearAllMocks();
   });
 
-  describe('#get', () => {
+  describe('#find', () => {
     it('should return found portfolio from repository', async () => {
-      mockRepository.findByCif.mockResolvedValue(mockPortfolios[0]);
-      const expectedResult = mockPortfolios[0];
+      mockRepository.findByCif.mockResolvedValue(mockPortfolios);
+      const expectedResult = mockPortfolios;
       const user = {
         cif: mockPortfolios[0].cif,
       };
 
-      const result = await portfolioService.get(user);
+      const result = await portfolioService.find(user);
 
       await expect(result).toStrictEqual(expectedResult);
     });
@@ -103,8 +103,19 @@ describe('PortfolioService', () => {
       }];
       await portfolioService.updateOwnedProduct(cif, portfolioCode, productData);
 
-      await expect(mockRepository.updateOne)
+      expect(mockRepository.updateOne)
         .toBeCalledWith(...[cif, portfolioCode, updatedProduct]);
+    });
+  });
+
+  describe('#findOne', () => {
+    it('should return portfolio for given user', async () => {
+      mockRepository.findOne.mockResolvedValue(mockPortfolios[0]);
+      const { cif, portfolioCode } = mockPortfolios[0];
+
+      await portfolioService.findOne(cif, portfolioCode);
+
+      expect(mockRepository.findOne).toBeCalledWith(cif, portfolioCode);
     });
   });
 });
