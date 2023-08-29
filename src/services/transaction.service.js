@@ -19,9 +19,9 @@ class TransactionService {
   }
 
   static _constructProductData(product) {
-    const { nav: { currentValue } } = product;
+    const { nav: { currentValue }, createdAt, ...restProduct } = product;
     return {
-      ...product,
+      ...restProduct,
       nav: currentValue,
     };
   }
@@ -35,7 +35,6 @@ class TransactionService {
       transactionID: generateId(15),
       cif,
       ...(TransactionService._isBuyTransaction(type) && { amount: payload.amount }),
-      ...(!TransactionService._isBuyTransaction(type) && { units: payload.units }),
       product,
       type,
       status: PENDING,
@@ -109,7 +108,11 @@ class TransactionService {
     const paymentRequest = await this.paymentRepository.findOne(paymentCode);
 
     if (!paymentRequest) {
-      throw new CustomError('Invalid Payment Code', 400);
+      throw new CustomError(`Payment code ${paymentCode} not found`, 400);
+    }
+
+    if (paymentRequest.transactionID !== transaction.transactionID) {
+      throw new CustomError(`Invalid payment code ${paymentCode}`, 400);
     }
 
     const { transactionID } = transaction;
@@ -122,8 +125,7 @@ class TransactionService {
     return updatedTransaction;
   }
 
-  async _approveTransaction(payload) {
-    const { transactionID } = payload;
+  async _getTransaction(transactionID) {
     const transaction = await this.repository.findOne(transactionID);
 
     if (!transaction) {
@@ -134,13 +136,26 @@ class TransactionService {
       throw new CustomError('Transaction already approved', 400);
     }
 
-    const { productCode } = transaction.product;
+    return transaction;
+  }
+
+  async _getProduct(productCode) {
     let product = await this.productService.findOneByProductCode(productCode);
-    product = TransactionService._constructProductData(product);
 
     if (!product) {
       throw new CustomError(`Product with code ${productCode} not found`, 400);
     }
+
+    product = TransactionService._constructProductData(product);
+    return product;
+  }
+
+  async _approveTransaction(payload) {
+    const { transactionID } = payload;
+    const transaction = await this._getTransaction(transactionID);
+
+    const { product: { productCode } } = transaction;
+    const product = await this._getProduct(productCode);
 
     const updateTransaction = {
       [BUY]: async () => this._updateBuyTransaction(transaction, product, payload.paymentCode),

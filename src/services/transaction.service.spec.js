@@ -1,7 +1,7 @@
 const moment = require('moment');
 const mockDate = require('mockdate');
 const { TransactionService } = require('./index');
-const { products, navs } = require('../fixtures');
+const { products, navs, transactions } = require('../fixtures');
 const CustomError = require('../utils/error');
 
 jest.mock('../utils/generator', () => ({
@@ -16,6 +16,7 @@ describe('TransactionService', () => {
     ...products[0],
     nav: { ...navs[0] },
   };
+  delete mockProduct.createdAt;
   const mockPaymentRequest = {
     transactionID: 'generatedId',
     paymentCode: 'generatedId',
@@ -34,13 +35,14 @@ describe('TransactionService', () => {
       repository: {
         create: jest.fn(),
         findOne: jest.fn(),
-        updateStatus: jest.fn(),
+        update: jest.fn(),
       },
       logger: {
         info: jest.fn(),
       },
       paymentRepository: {
         create: jest.fn(),
+        findOne: jest.fn(),
       },
       productService: {
         findOneByProductCode: jest.fn(),
@@ -180,9 +182,132 @@ describe('TransactionService', () => {
     });
   });
 
-  describe('#processPayment', () => {
-    it('should process SETTLED payment for buy transaction', () => {
+  describe('#updateTransaction', () => {
+    it('should throw error when transaction status is not valid', async () => {
+      const payload = {
+        status: 'FINISHED', transactionID: 'YIP9YIYUKPQDSOW', paymentCode: 'YIP9YIYUKPQDSOA',
+      };
 
+      await expect(transactionService.updateTransaction(payload))
+        .rejects.toThrow(new CustomError('Invalid transaction status', 400));
+    });
+
+    describe('SETTLED status', () => {
+      it('should throw error when transaction is not found', async () => {
+        const payload = {
+          status: 'SETTLED', transactionID: 'YIP9YIYUKPQDSOW', paymentCode: 'YIP9YIYUKPQDSOA',
+        };
+        opts.repository.findOne.mockResolvedValue(null);
+
+        await expect(transactionService.updateTransaction(payload))
+          .rejects.toThrow(new CustomError('Transaction not found', 400));
+      });
+
+      it('should throw error when transaction is already approved', async () => {
+        const payload = {
+          status: 'SETTLED', transactionID: 'YIP9YIYUKPQDSOW', paymentCode: 'YIP9YIYUKPQDSOA',
+        };
+        opts.repository.findOne.mockResolvedValue({ ...transactions[0], status: 'SETTLED' });
+        opts.productService.findOneByProductCode.mockResolvedValue(null);
+
+        await expect(transactionService.updateTransaction(payload))
+          .rejects.toThrow(new CustomError('Transaction already approved', 400));
+      });
+
+      it('should throw error when product is not found', async () => {
+        const payload = {
+          status: 'SETTLED', transactionID: 'YIP9YIYUKPQDSOW', paymentCode: 'YIP9YIYUKPQDSOA',
+        };
+        opts.repository.findOne.mockResolvedValue(transactions[0]);
+        opts.productService.findOneByProductCode.mockResolvedValue(null);
+
+        await expect(transactionService.updateTransaction(payload))
+          .rejects.toThrow(new CustomError(`Product with code ${transactions[0].product.productCode} not found`, 400));
+      });
+
+      it('should throw error when payment request is not found', async () => {
+        const payload = {
+          status: 'SETTLED', transactionID: 'YIP9YIYUKPQDSOW', paymentCode: 'YIP9YIYUKPQDSOA',
+        };
+        opts.repository.findOne.mockResolvedValue(transactions[0]);
+        opts.productService.findOneByProductCode.mockResolvedValue({
+          ...products[0],
+          nav: {
+            currentValue: 10000,
+          },
+        });
+        opts.paymentRepository.findOne.mockResolvedValue(null);
+
+        await expect(transactionService.updateTransaction(payload))
+          .rejects.toThrow(new CustomError(`Payment code ${payload.paymentCode} not found`, 400));
+      });
+
+      it('should throw error when transactionID found in payment request is not match with given transaction', async () => {
+        const paymentCode = 'YIP9YIYUKPQDSOA';
+        const { transactionID } = transactions[0];
+        const payload = {
+          status: 'SETTLED', transactionID, paymentCode,
+        };
+        opts.repository.findOne.mockResolvedValue(transactions[0]);
+        opts.productService.findOneByProductCode.mockResolvedValue({
+          ...products[0],
+          nav: {
+            currentValue: 10000,
+          },
+        });
+        opts.paymentRepository.findOne.mockResolvedValue({
+          paymentCode,
+          transactionID: 'YIP9YIYUKPQDSOQ',
+        });
+
+        await expect(transactionService.updateTransaction(payload))
+          .rejects.toThrow(new CustomError(`Invalid payment code ${payload.paymentCode}`, 400));
+      });
+
+      it('should throw error when payment request is not found', async () => {
+        const paymentCode = 'YIP9YIYUKPQDSOA';
+        const { transactionID } = transactions[0];
+        const payload = {
+          status: 'SETTLED', transactionID, paymentCode: 'YIP9YIYUKPQDSOA',
+        };
+        const mockTransaction = { ...transactions[0], product: mockProduct };
+        opts.repository.findOne.mockResolvedValue(mockTransaction);
+        opts.productService.findOneByProductCode.mockResolvedValue(mockProduct);
+        opts.paymentRepository.findOne.mockResolvedValue({
+          paymentCode,
+          transactionID,
+        });
+        const calculatedUnits = mockTransaction.amount / mockProduct.nav.currentValue;
+        opts.repository.update.mockResolvedValue({
+          value: {
+            ...mockTransaction,
+            status: 'SETTLED',
+            units: calculatedUnits,
+            product: {
+              ...mockProduct,
+              nav: mockProduct.nav.currentValue,
+            },
+          },
+        });
+
+        await transactionService.updateTransaction(payload);
+
+        expect(opts.repository.update).toBeCalledWith(transactionID, {
+          status: 'SETTLED',
+          product: {
+            ...mockProduct,
+            nav: mockProduct.nav.currentValue,
+          },
+          units: calculatedUnits,
+        });
+        const expectedProductData = {
+          productCode: mockProduct.productCode,
+          units: calculatedUnits,
+          capitalInvestment: mockTransaction.amount,
+        };
+        expect(opts.portfolioService.updateOwnedProduct)
+          .toBeCalledWith(mockTransaction.cif, mockTransaction.portfolioCode, expectedProductData);
+      });
     });
   });
 });
