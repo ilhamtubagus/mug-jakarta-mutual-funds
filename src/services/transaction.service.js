@@ -3,7 +3,7 @@ const CustomError = require('../utils/error');
 const { generateId } = require('../utils/generator');
 const constants = require('../constants');
 
-const { TRANSACTION_TYPE: { BUY }, TRANSACTION_STATUS: { PENDING, SETTLED } } = constants;
+const { TRANSACTION_TYPE: { BUY, SELL }, TRANSACTION_STATUS: { PENDING, SETTLED } } = constants;
 
 class TransactionService {
   constructor({
@@ -42,21 +42,32 @@ class TransactionService {
     };
   }
 
-  async _handleBuyTransaction(cif, payload) {
-    const { productCode, portfolioCode } = payload;
+  async _getProduct(productCode) {
+    let product = await this.productService.findOneByProductCode(productCode);
+
+    if (!product) {
+      throw new CustomError(`Product with code ${productCode} not found`, 400);
+    }
+
+    product = TransactionService._constructProductData(product);
+    return product;
+  }
+
+  async _getPortfolio(cif, portfolioCode) {
     const portfolio = await this.portfolioService.findOne(cif, portfolioCode);
 
     if (!portfolio) {
       throw new CustomError(`Portfolio with code ${portfolioCode} not found`, 400);
     }
 
-    const product = await this.productService.findOneByProductCode(productCode);
+    return portfolio;
+  }
 
-    if (!product) {
-      throw new CustomError(`Product with code ${productCode} not found`, 400);
-    }
+  async _handleBuyTransaction(cif, payload) {
+    const { productCode, portfolioCode } = payload;
+    await this._getPortfolio(cif, portfolioCode);
 
-    const constructedProduct = TransactionService._constructProductData(product);
+    const constructedProduct = await this._getProduct(productCode);
     const transactionData = TransactionService
       ._constructTransactionData(cif, payload, constructedProduct);
 
@@ -137,17 +148,6 @@ class TransactionService {
     }
 
     return transaction;
-  }
-
-  async _getProduct(productCode) {
-    let product = await this.productService.findOneByProductCode(productCode);
-
-    if (!product) {
-      throw new CustomError(`Product with code ${productCode} not found`, 400);
-    }
-
-    product = TransactionService._constructProductData(product);
-    return product;
   }
 
   async _approveTransaction(payload) {
