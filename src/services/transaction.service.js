@@ -36,6 +36,7 @@ class TransactionService {
       transactionID: generateId(15),
       cif,
       ...(TransactionService._isBuyTransaction(type) && { amount: payload.amount }),
+      ...(!TransactionService._isBuyTransaction(type) && { units: payload.units }),
       product,
       type,
       status: PENDING,
@@ -97,12 +98,37 @@ class TransactionService {
     return { ...paymentRequestData, ...payload, status: PENDING };
   }
 
+  async handleSellTransaction(cif, payload) {
+    const { productCode, portfolioCode, units } = payload;
+    const portfolio = await this._getPortfolio(cif, portfolioCode);
+
+    const productInPortfolio = portfolio.products
+      .find((portfolioProduct) => portfolioProduct.productCode === productCode);
+
+    if (!productInPortfolio) {
+      throw new CustomError('Product is not found in your portfolio', 400);
+    }
+
+    if (productInPortfolio.units < units) {
+      throw new CustomError('Available units is not sufficient', 400);
+    }
+
+    const constructedProduct = await this._getProduct(productCode);
+    const transactionData = TransactionService
+      ._constructTransactionData(cif, payload, constructedProduct);
+
+    await this.repository.create(transactionData);
+
+    return { transactionID: transactionData.transactionID, ...payload, status: PENDING };
+  }
+
   async create(user, payload) {
     const { type } = payload;
     const { cif } = user;
 
     const transactionHandler = {
       [BUY]: async () => this._handleBuyTransaction(cif, payload),
+      [SELL]: async () => this.handleSellTransaction(cif, payload),
     };
 
     const processTransaction = transactionHandler[`${type}`];
