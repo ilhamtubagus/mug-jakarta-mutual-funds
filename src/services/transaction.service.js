@@ -1,3 +1,4 @@
+const net = require('net');
 const moment = require('moment');
 const CustomError = require('../utils/error');
 const { generateId } = require('../utils/generator');
@@ -115,6 +116,21 @@ class TransactionService {
     return processTransaction();
   }
 
+  static _calculateUnits(latestProduct, transaction) {
+    const { amount } = transaction;
+    const { nav, buyFee, tax } = latestProduct;
+    let netAmount = amount;
+
+    if (buyFee) {
+      netAmount -= (netAmount * buyFee);
+    }
+    if (tax) {
+      netAmount -= (netAmount * tax);
+    }
+
+    return netAmount / nav;
+  }
+
   async _updateBuyTransaction(transaction, product, paymentCode) {
     const paymentRequest = await this.paymentRepository.findOne(paymentCode);
 
@@ -130,7 +146,7 @@ class TransactionService {
     const { value: updatedTransaction } = await this.repository.update(transactionID, {
       status: SETTLED,
       product,
-      units: transaction.amount / product.nav,
+      units: TransactionService._calculateUnits(product, transaction),
     });
 
     return updatedTransaction;

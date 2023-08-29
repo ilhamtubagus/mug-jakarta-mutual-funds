@@ -264,7 +264,7 @@ describe('TransactionService', () => {
           .rejects.toThrow(new CustomError(`Invalid payment code ${payload.paymentCode}`, 400));
       });
 
-      it('should throw error when payment request is not found', async () => {
+      it('should process buy transaction for SETTLED status when product buyFee is exist', async () => {
         const paymentCode = 'YIP9YIYUKPQDSOA';
         const { transactionID } = transactions[0];
         const payload = {
@@ -277,7 +277,8 @@ describe('TransactionService', () => {
           paymentCode,
           transactionID,
         });
-        const calculatedUnits = mockTransaction.amount / mockProduct.nav.currentValue;
+        const calculatedUnits = (mockTransaction.amount
+            - (mockTransaction.amount * mockProduct.buyFee)) / mockProduct.nav.currentValue;
         opts.repository.update.mockResolvedValue({
           value: {
             ...mockTransaction,
@@ -302,6 +303,58 @@ describe('TransactionService', () => {
         });
         const expectedProductData = {
           productCode: mockProduct.productCode,
+          units: calculatedUnits,
+          capitalInvestment: mockTransaction.amount,
+        };
+        expect(opts.portfolioService.updateOwnedProduct)
+          .toBeCalledWith(mockTransaction.cif, mockTransaction.portfolioCode, expectedProductData);
+      });
+
+      it('should process buy transaction for SETTLED status when product tax is exist', async () => {
+        const paymentCode = 'YIP9YIYUKPQDSOA';
+        const { transactionID } = transactions[0];
+        const payload = {
+          status: 'SETTLED', transactionID, paymentCode: 'YIP9YIYUKPQDSOA',
+        };
+        const mockProductWithTax = {
+          ...mockProduct,
+          buyFee: 0,
+          tax: 0.01,
+        };
+        const mockTransaction = { ...transactions[0], product: mockProductWithTax };
+        opts.repository.findOne.mockResolvedValue(mockTransaction);
+        opts.productService.findOneByProductCode.mockResolvedValue(mockProductWithTax);
+        opts.paymentRepository.findOne.mockResolvedValue({
+          paymentCode,
+          transactionID,
+        });
+        const calculatedUnits = (mockTransaction.amount
+            - (mockTransaction.amount * mockProductWithTax.tax))
+            / mockProductWithTax.nav.currentValue;
+        opts.repository.update.mockResolvedValue({
+          value: {
+            ...mockTransaction,
+            status: 'SETTLED',
+            units: calculatedUnits,
+            product: {
+              ...mockProductWithTax,
+              nav: mockProductWithTax.nav.currentValue,
+            },
+          },
+        });
+
+        await transactionService.updateTransaction(payload);
+
+        expect(opts.repository.update).toBeCalledWith(transactionID, {
+          status: 'SETTLED',
+          product: {
+            ...mockProductWithTax,
+            nav: mockProductWithTax.nav.currentValue,
+          },
+          units: calculatedUnits,
+        });
+        const expectedProductData = {
+          productCode: mockProductWithTax.productCode,
           units: calculatedUnits,
           capitalInvestment: mockTransaction.amount,
         };
