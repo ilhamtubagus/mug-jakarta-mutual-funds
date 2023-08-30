@@ -308,7 +308,7 @@ describe('TransactionService', () => {
           opts.productService.findOneByProductCode.mockResolvedValue(null);
 
           await expect(transactionService.updateTransaction(payload))
-            .rejects.toThrow(new CustomError('Transaction already approved', 400));
+            .rejects.toThrow(new CustomError('Transaction already updated', 400));
         });
 
         it('should throw error when payment request is not found', async () => {
@@ -588,6 +588,86 @@ describe('TransactionService', () => {
             portfolioCode,
             expectedProductData,
           );
+        });
+      });
+    });
+
+    describe('FAILED status', () => {
+      it('should throw error when transaction is not found', async () => {
+        const payload = {
+          status: 'FAILED', transactionID: 'YIP9YIYUKPQDSOW', paymentCode: 'YIP9YIYUKPQDSOA',
+        };
+        opts.repository.findOne.mockResolvedValue(null);
+
+        await expect(transactionService.updateTransaction(payload))
+          .rejects.toThrow(new CustomError('Transaction not found', 400));
+      });
+
+      it('should throw error when transaction is SETTLED', async () => {
+        const payload = {
+          status: 'FAILED', transactionID: 'YIP9YIYUKPQDSOW', paymentCode: 'YIP9YIYUKPQDSOA',
+        };
+        const mockTransaction = {
+          ...transactions[0],
+          status: 'SETTLED',
+        };
+        opts.repository.findOne.mockResolvedValue(mockTransaction);
+
+        await expect(transactionService.updateTransaction(payload))
+          .rejects.toThrow(new CustomError('Transaction already updated', 400));
+      });
+
+      it('should throw error when transaction is fAILED', async () => {
+        const payload = {
+          status: 'FAILED', transactionID: 'YIP9YIYUKPQDSOW', paymentCode: 'YIP9YIYUKPQDSOA',
+        };
+        const mockTransaction = {
+          ...transactions[0],
+          status: 'FAILED',
+        };
+        opts.repository.findOne.mockResolvedValue(mockTransaction);
+
+        await expect(transactionService.updateTransaction(payload))
+          .rejects.toThrow(new CustomError('Transaction already updated', 400));
+      });
+
+      it('should update transaction to FAILED', async () => {
+        const payload = {
+          status: 'FAILED', transactionID: 'YIP9YIYUKPQDSOW', paymentCode: 'YIP9YIYUKPQDSOA',
+        };
+        const mockTransaction = {
+          ...transactions[0],
+          status: 'PENDING',
+        };
+        const { transactionID } = payload;
+        opts.repository.findOne.mockResolvedValue(mockTransaction);
+
+        await transactionService.updateTransaction(payload);
+
+        expect(opts.repository.update).toBeCalledWith(transactionID, {
+          status: 'FAILED',
+        });
+      });
+
+      it('should update transaction to FAILED when fail reason is supplied', async () => {
+        const payload = {
+          status: 'FAILED',
+          transactionID: 'YIP9YIYUKPQDSOW',
+          paymentCode: 'YIP9YIYUKPQDSOA',
+          failReason: 'Product on hold',
+        };
+        const mockTransaction = {
+          ...transactions[0],
+          status: 'PENDING',
+        };
+        const { transactionID } = payload;
+        opts.repository.findOne.mockResolvedValue(mockTransaction);
+
+        await transactionService.updateTransaction(payload);
+
+        expect(opts.repository.update).toBeCalledWith(transactionID, {
+          status: 'FAILED',
+          failReason: payload.failReason,
         });
       });
     });

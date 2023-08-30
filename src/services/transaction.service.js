@@ -188,8 +188,8 @@ class TransactionService {
       throw new CustomError('Transaction not found', 400);
     }
 
-    if (transaction.status === SETTLED) {
-      throw new CustomError('Transaction already approved', 400);
+    if (transaction.status === SETTLED || transaction.status === FAILED) {
+      throw new CustomError('Transaction already updated', 400);
     }
 
     return transaction;
@@ -274,12 +274,23 @@ class TransactionService {
     await this.portfolioService.updateOwnedProduct(cif, portfolioCode, productData);
   }
 
+  async _cancelTransaction(payload) {
+    const { transactionID, failReason } = payload;
+    await this._getTransaction(transactionID);
+
+    await this.repository.update(transactionID, {
+      status: FAILED,
+      ...(failReason && { failReason }),
+    });
+  }
+
   async updateTransaction(payload) {
     const { status, transactionID } = payload;
     this.logger.info('Processing update transaction for', payload);
 
     const transactionHandler = {
       [SETTLED]: async () => this._approveTransaction(payload),
+      [FAILED]: async () => this._cancelTransaction(payload),
     };
 
     const processUpdate = transactionHandler[`${status}`];
