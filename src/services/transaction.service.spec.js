@@ -55,9 +55,17 @@ describe('TransactionService', () => {
       },
       config: {
         paymentExpiration: 1,
+        kafka: {
+          topics: {
+            sellResult: 'MF_SELL_RESULT',
+          },
+        },
       },
       mongoClient: {
         startSession: jest.fn().mockImplementation(() => startSession),
+      },
+      producer: {
+        send: jest.fn(),
       },
     };
 
@@ -617,7 +625,7 @@ describe('TransactionService', () => {
           .rejects.toThrow(new CustomError('Transaction already updated', 400));
       });
 
-      it('should throw error when transaction is fAILED', async () => {
+      it('should throw error when transaction is FAILED', async () => {
         const payload = {
           status: 'FAILED', transactionID: 'YIP9YIYUKPQDSOW', paymentCode: 'YIP9YIYUKPQDSOA',
         };

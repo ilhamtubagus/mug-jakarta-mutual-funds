@@ -1,4 +1,4 @@
-const initializeKafkaProducer = async (Kafka, app, handler) => {
+const initializeKafkaProducer = async (Kafka, app) => {
   const {
     locals: {
       logger, config: {

@@ -33,7 +33,7 @@ class TransactionService {
 
   static _isBuyTransaction = (type) => type === BUY;
 
-  static _isSellTransaction = (type) => type === BUY;
+  static _isSellTransaction = (type) => type === SELL;
 
   static _constructTransactionData(cif, payload, product) {
     const { type, portfolioCode } = payload;
