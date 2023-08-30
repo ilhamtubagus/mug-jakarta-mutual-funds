@@ -5,11 +5,11 @@ const portfolioRouter = Router();
 
 portfolioRouter.get('/portfolios', authenticationMiddleware(), async (req, res, next) => {
   const {
-    portfolioService,
     auth: {
       user,
     },
   } = res.locals;
+  const { portfolioService } = req.app.locals.services;
 
   try {
     const result = await portfolioService.find(user);

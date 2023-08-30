@@ -6,7 +6,7 @@ const router = Router();
 router.get('/products/:productCode', authenticationMiddleware(), async (req, res, next) => {
   const {
     productService,
-  } = res.locals;
+  } = req.app.locals.services;
 
   try {
     const { productCode } = req.params;

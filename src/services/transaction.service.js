@@ -1,4 +1,3 @@
-const net = require('net');
 const moment = require('moment');
 const CustomError = require('../utils/error');
 const { generateId } = require('../utils/generator');
@@ -11,7 +10,8 @@ const {
 
 class TransactionService {
   constructor({
-    repository, logger, paymentRepository, productService, portfolioService, config, mongoClient,
+    repository, logger, paymentRepository,
+    productService, portfolioService, config, mongoClient, producer,
   }) {
     this.repository = repository;
     this.logger = logger;
@@ -20,6 +20,7 @@ class TransactionService {
     this.portfolioService = portfolioService;
     this.config = config;
     this.mongoClient = mongoClient;
+    this.producer = producer;
   }
 
   static _constructProductData(product) {
@@ -32,6 +33,8 @@ class TransactionService {
 
   static _isBuyTransaction = (type) => type === BUY;
 
+  static _isSellTransaction = (type) => type === BUY;
+
   static _constructTransactionData(cif, payload, product) {
     const { type, portfolioCode } = payload;
 
@@ -39,7 +42,7 @@ class TransactionService {
       transactionID: generateId(15),
       cif,
       ...(TransactionService._isBuyTransaction(type) && { amount: payload.amount }),
-      ...(!TransactionService._isBuyTransaction(type) && { units: payload.units }),
+      ...(TransactionService._isSellTransaction(type) && { units: payload.units }),
       product,
       type,
       status: PENDING,
@@ -243,6 +246,23 @@ class TransactionService {
     return updatedTransaction;
   }
 
+  async _sendToAggregator(transaction) {
+    const { kafka: { topics: { sellResult } } } = this.config;
+    const { cif, amount, modifiedAt } = transaction;
+    const payload = {
+      cif, amount, transactionDate: modifiedAt,
+    };
+
+    this.logger.info('Producing message to aggregator', payload);
+
+    await this.producer.send({
+      topic: sellResult,
+      messages: [
+        { value: JSON.stringify(payload) },
+      ],
+    });
+  }
+
   async _approveTransaction(payload) {
     const { transactionID } = payload;
     const transaction = await this._getTransaction(transactionID);
@@ -272,6 +292,10 @@ class TransactionService {
     this.logger.info('ProductData', productData);
 
     await this.portfolioService.updateOwnedProduct(cif, portfolioCode, productData);
+
+    if (TransactionService._isSellTransaction(type)) {
+      await this._sendToAggregator(updatedTransaction);
+    }
   }
 
   async _cancelTransaction(payload) {
@@ -286,7 +310,6 @@ class TransactionService {
 
   async updateTransaction(payload) {
     const { status, transactionID } = payload;
-    this.logger.info('Processing update transaction for', payload);
 
     const transactionHandler = {
       [SETTLED]: async () => this._approveTransaction(payload),

@@ -8,44 +8,19 @@ const transactionRouter = Router();
 
 transactionRouter.post('/transactions', authenticationMiddleware(), async (req, res, next) => {
   const {
-    transactionService,
     auth: {
       user,
     },
   } = res.locals;
   const {
-    body: payload,
+    body: payload, app: { locals: { services } },
   } = req;
+  const { transactionService } = services;
 
   try {
     const result = await transactionService.create(user, payload);
 
     res.status(201).json(result);
-    next();
-  } catch (e) {
-    next(e);
-  }
-});
-
-transactionRouter.patch('/transactions/:transactionID', authenticationMiddleware(PAYMENT_PROCESSOR), async (req, res, next) => {
-  const {
-    transactionService,
-  } = res.locals;
-  const {
-    body,
-  } = req;
-
-  const { transactionID } = req.params;
-
-  const payload = {
-    ...body,
-    transactionID,
-  };
-
-  try {
-    const result = await transactionService.updateTransaction(payload);
-
-    res.status(200).json(result);
     next();
   } catch (e) {
     next(e);
