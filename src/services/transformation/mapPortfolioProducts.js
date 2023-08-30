@@ -8,33 +8,30 @@ const mapPortfolioProduct = (ownedProducts, productData) => {
   );
 
   if (!matchedProduct) {
-    const newProduct = [...ownedProducts, productData];
-    return newProduct;
+    return [...ownedProducts, productData];
   }
 
-  const updatedProduct = ownedProducts.reduce((prevProduct, product) => {
+  return ownedProducts.reduce((prevProduct, product) => {
     const { productCode, units, capitalInvestment } = product;
     const {
-      productCode: purchaseProductCode,
-      units: purchaseUnits,
-      capitalInvestment: purchaseInvestment,
+      productCode: transactionProductCode,
+      units: transactionUnit,
+      capitalInvestment: transactionAmount,
     } = productData;
-    let increasedProduct = { productCode, units, capitalInvestment };
+    let updatedProduct = { productCode, units, capitalInvestment };
 
-    if (productCode === purchaseProductCode) {
-      increasedProduct = {
+    if (productCode === transactionProductCode) {
+      updatedProduct = {
         productCode,
-        units: units + purchaseUnits,
-        capitalInvestment: capitalInvestment + purchaseInvestment,
+        units: units + transactionUnit,
+        capitalInvestment: capitalInvestment + transactionAmount,
       };
     }
     return [
       ...prevProduct,
-      increasedProduct,
+      updatedProduct,
     ];
   }, []);
-
-  return updatedProduct;
 };
 
 module.exports = { mapPortfolioProduct };

@@ -4,7 +4,10 @@ const CustomError = require('../utils/error');
 const { generateId } = require('../utils/generator');
 const constants = require('../constants');
 
-const { TRANSACTION_TYPE: { BUY, SELL }, TRANSACTION_STATUS: { PENDING, SETTLED } } = constants;
+const {
+  TRANSACTION_TYPE: { BUY, SELL }, TRANSACTION_STATUS:
+    { PENDING, SETTLED, FAILED },
+} = constants;
 
 class TransactionService {
   constructor({
@@ -192,23 +195,79 @@ class TransactionService {
     return transaction;
   }
 
+  static _calculateAmount(transaction, latestProduct) {
+    const { units } = transaction;
+    const { sellFee, tax, nav } = latestProduct;
+
+    let netAmount = units * nav;
+
+    if (sellFee) {
+      netAmount -= (netAmount * sellFee);
+    }
+
+    if (tax) {
+      netAmount -= (netAmount * tax);
+    }
+
+    return netAmount;
+  }
+
+  async _updateSellTransaction(transaction, latestProduct, portfolio) {
+    const { transactionID, product: { productCode } } = transaction;
+
+    const productInPortfolio = portfolio.products
+      .find((portfolioProduct) => portfolioProduct.productCode === productCode);
+
+    if (!productInPortfolio) {
+      throw new CustomError('Product is not found in your portfolio', 400);
+    }
+
+    if (productInPortfolio.units < transaction.units) {
+      this.logger.info('Available units is not sufficient, updating transaction status to FAILED');
+
+      await this.repository.update(transactionID, {
+        status: FAILED,
+        product: latestProduct,
+        failReason: 'Available units is not sufficient',
+      });
+
+      throw new CustomError('Available units is not sufficient', 400);
+    }
+
+    const { value: updatedTransaction } = await this.repository.update(transactionID, {
+      status: SETTLED,
+      product: latestProduct,
+      amount: TransactionService._calculateAmount(transaction, latestProduct),
+    });
+
+    return updatedTransaction;
+  }
+
   async _approveTransaction(payload) {
     const { transactionID } = payload;
     const transaction = await this._getTransaction(transactionID);
 
-    const { product: { productCode } } = transaction;
+    const { product: { productCode }, cif, portfolioCode } = transaction;
     const product = await this._getProduct(productCode);
+
+    const portfolio = await this._getPortfolio(cif, portfolioCode);
 
     const updateTransaction = {
       [BUY]: async () => this._updateBuyTransaction(transaction, product, payload.paymentCode),
+      [SELL]: async () => this._updateSellTransaction(transaction, product, portfolio),
     };
 
     const updatedTransaction = await updateTransaction[transaction.type]();
 
     const {
-      cif, units, portfolioCode, amount,
+      units, amount, type,
     } = updatedTransaction;
-    const productData = { productCode, units, capitalInvestment: amount };
+    const productData = {
+      productCode,
+      ...(TransactionService._isBuyTransaction(type)
+        ? { units, capitalInvestment: amount }
+        : { units: -units, capitalInvestment: -amount }),
+    };
 
     this.logger.info('ProductData', productData);
 
@@ -217,6 +276,7 @@ class TransactionService {
 
   async updateTransaction(payload) {
     const { status, transactionID } = payload;
+    this.logger.info('Processing update transaction for', payload);
 
     const transactionHandler = {
       [SETTLED]: async () => this._approveTransaction(payload),

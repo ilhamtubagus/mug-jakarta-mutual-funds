@@ -17,7 +17,11 @@ module.exports = [
     cif: 'HRSTBDHICZ',
     portfolioCode: '002',
     name: 'Coba 2',
-    products: [],
+    products: [{
+      productCode: 'SCHPU',
+      units: 100,
+      capitalInvestment: 10000,
+    }],
     createdAt: new Date('2023-08-10'),
     modifiedAt: new Date('2023-08-19'),
   },
