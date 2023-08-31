@@ -25,6 +25,7 @@ entity Portfolio {
 entity PortfolioProduct {
     *units: number
     *product: Product
+    *capitalInvestment: number
     createdAt: Date
     modifiedAt: Date
 }

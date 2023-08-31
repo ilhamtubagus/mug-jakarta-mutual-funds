@@ -19,7 +19,7 @@ async function defineAccountsSchema() {
         {
           $jsonSchema: {
             bsonType: 'object',
-            required: ['email', 'password', 'fullName', 'dateOfBirth', 'nik', 'cif'],
+            required: ['email', 'password', 'fullName', 'dateOfBirth', 'nik', 'cif', 'riskProfile'],
             properties: {
               password: {
                 bsonType: 'string',
@@ -144,6 +144,11 @@ async function defineNavsSchema() {
       $jsonSchema: {
         bsonType: 'object',
         required: ['currentValue', 'productCode', 'createdAt'],
+        properties: {
+          currentValue: {
+            bsonType: 'number',
+          },
+        },
       },
     },
   });
@@ -155,6 +160,7 @@ async function insertNavs() {
 
 async function definePortfoliosSchema() {
   await db.portfolios.createIndex({ cif: 1, portfolioCode: 1 }, { unique: true });
+  await db.portfolios.createIndex({ cif: 1 });
   await db.runCommand({
     collMod: 'portfolios',
     validator:
@@ -175,10 +181,10 @@ async function definePortfoliosSchema() {
                   bsonType: 'string',
                 },
                 units: {
-                  bsonType: 'double',
+                  bsonType: 'number',
                 },
                 capitalInvestment: {
-                  bsonType: 'double',
+                  bsonType: 'number',
                 },
               },
             },
@@ -189,20 +195,6 @@ async function definePortfoliosSchema() {
   });
 }
 
-async function definePortfolioProductsSchema() {
-  await db.createCollection(
-    'portfolioProducts',
-    {
-      validator: {
-        $jsonSchema: {
-          bsonType: 'object',
-          required: ['units', 'product'],
-        },
-      },
-    },
-  );
-}
-
 async function defineTransactionsSchema() {
   await db.transactions.createIndex({ transactionID: 1 }, { unique: true });
   await db.runCommand({
@@ -210,21 +202,21 @@ async function defineTransactionsSchema() {
     validator: {
       $jsonSchema: {
         bsonType: 'object',
-        required: ['transactionID', 'cif', 'amount', 'units', 'product', 'type', 'status', 'portfolioCode'],
-      },
-      properties: {
-        product: {
-          bsonType: 'object',
-        },
-        cif: {
-          bsonType: 'string',
-          minLength: 10,
-        },
-        type: {
-          enum: ['BUY', 'SELL'],
-        },
-        status: {
-          enum: ['PENDING', 'SETTLED', 'FAILED'],
+        required: ['transactionID', 'cif', 'product', 'type', 'status', 'portfolioCode'],
+        properties: {
+          product: {
+            bsonType: 'object',
+          },
+          cif: {
+            bsonType: 'string',
+            minLength: 10,
+          },
+          type: {
+            enum: ['BUY', 'SELL'],
+          },
+          status: {
+            enum: ['PENDING', 'SETTLED', 'FAILED'],
+          },
         },
       },
     },
@@ -251,7 +243,6 @@ async function run() {
   await defineProductsSchema();
   await defineNavsSchema();
   await definePortfoliosSchema();
-  await definePortfolioProductsSchema();
   await defineTransactionsSchema();
   await definePaymentRequestSchema();
   await insertInvestmentManagers();

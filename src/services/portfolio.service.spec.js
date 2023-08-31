@@ -1,5 +1,4 @@
 const mockDate = require('mockdate');
-const { portfolios: mockPortfolios } = require('../fixtures');
 const PortfolioService = require('./portfolio.service');
 
 describe('PortfolioService', () => {
@@ -7,6 +6,7 @@ describe('PortfolioService', () => {
   let portfolioService;
   let mockRepository;
   let mockLogger;
+  let mockPortfolios;
 
   beforeEach(() => {
     mockRepository = {
@@ -23,6 +23,30 @@ describe('PortfolioService', () => {
       logger: mockLogger,
     });
     mockDate.set(now);
+    mockPortfolios = [
+      {
+        cif: 'HRSTBDHICE',
+        portfolioCode: '001',
+        name: 'Coba 1',
+        createdAt: new Date('2023-08-10'),
+        modifiedAt: new Date('2023-08-19'),
+        products: [
+          {
+            productCode: 'SCHE',
+            units: 100,
+            currentNav: 1900,
+            name: 'Schroder Dana Equity',
+            productCategory: 'equity',
+            imageUrl: '',
+            sellFee: 0.2,
+            buyFee: 0.2,
+            capitalInvestment: 10000,
+            tax: 0,
+            navDate: new Date('2023-08-23'),
+          },
+        ],
+      },
+    ];
   });
 
   afterEach(() => {
@@ -33,12 +57,28 @@ describe('PortfolioService', () => {
   describe('#find', () => {
     it('should return found portfolio from repository', async () => {
       mockRepository.findByCif.mockResolvedValue(mockPortfolios);
-      const expectedResult = mockPortfolios;
+      const expectedResult = [
+        {
+          ...mockPortfolios[0],
+          products: mockPortfolios[0].products.map((product) => {
+            const currentInvestmentValue = product.currentNav * product.units;
+            const unrealizedGainLoss = currentInvestmentValue - product.capitalInvestment;
+            const
+              percentagePotentialReturn = (unrealizedGainLoss / product.capitalInvestment) * 100;
+            return {
+              ...product,
+              currentInvestmentValue,
+              unrealizedGainLoss,
+              percentagePotentialReturn,
+            };
+          }),
+        },
+      ];
       const user = {
         cif: mockPortfolios[0].cif,
       };
 
-      const result = await portfolioService.find(user);
+      const result = await portfolioService.getPortfolios(user);
 
       await expect(result).toStrictEqual(expectedResult);
     });
@@ -66,7 +106,7 @@ describe('PortfolioService', () => {
     });
 
     it('should increment portfolioCode when user already has a portfolio', async () => {
-      mockRepository.findByCif.mockResolvedValue([mockPortfolios[0]]);
+      mockRepository.findByCif.mockResolvedValue(mockPortfolios);
       const user = {
         cif: mockPortfolios[0].cif,
       };
