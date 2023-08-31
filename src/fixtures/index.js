@@ -3,6 +3,8 @@ const investmentManagers = require('./mockInvestmentManagers');
 const products = require('./mockProducts');
 const navs = require('./mockNavs');
 const portfolios = require('./mockPortfolios');
+const transactions = require('./mockTransacations');
+const payment = require('./mockPayment');
 
 module.exports = {
   accounts,
@@ -10,4 +12,6 @@ module.exports = {
   products,
   navs,
   portfolios,
+  transactions,
+  payment,
 };

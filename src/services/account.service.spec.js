@@ -4,8 +4,8 @@ const CustomError = require('../utils/error');
 const { accounts: mockAccounts } = require('../fixtures');
 const { TOKEN_AUDIENCE: { CUSTOMER } } = require('../constants');
 
-jest.mock("../utils/generator", () => ({
-  generateId: () => "ztYtfy7C1j",
+jest.mock('../utils/generator', () => ({
+  generateId: () => 'ztYtfy7C1j',
 }));
 
 describe('AccountService', () => {
@@ -63,7 +63,7 @@ describe('AccountService', () => {
       const mockUserId = '1';
       mockRepository.findOneByEmail.mockResolvedValueOnce({
         ...mockAccounts[0],
-        _id: mockUserId
+        _id: mockUserId,
       });
       mockEncryption.compare.mockReturnValueOnce(true);
       const spyJwt = jest.spyOn(jwt, 'sign');

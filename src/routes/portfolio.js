@@ -3,16 +3,16 @@ const { authenticationMiddleware } = require('../middlewares');
 
 const portfolioRouter = Router();
 
-portfolioRouter.get('/portfolio', authenticationMiddleware(), async (req, res, next) => {
+portfolioRouter.get('/portfolios', authenticationMiddleware(), async (req, res, next) => {
   const {
-    portfolioService,
     auth: {
       user,
     },
   } = res.locals;
+  const { portfolioService } = req.app.locals.services;
 
   try {
-    const result = await portfolioService.get(user);
+    const result = await portfolioService.find(user);
 
     res.status(200).json(result);
     next();
@@ -21,7 +21,7 @@ portfolioRouter.get('/portfolio', authenticationMiddleware(), async (req, res, n
   }
 });
 
-portfolioRouter.post('/portfolio', authenticationMiddleware(), async (req, res, next) => {
+portfolioRouter.post('/portfolios', authenticationMiddleware(), async (req, res, next) => {
   const {
     portfolioService,
     auth: {

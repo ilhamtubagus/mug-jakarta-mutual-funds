@@ -11,6 +11,15 @@ const config = {
     options: process.env.DB_OPTIONS,
     name: process.env.DB_NAME,
   },
+  kafka: {
+    brokers: (process.env.KAFKA_BROKERS).split(','),
+    clientId: process.env.KAFKA_CLIENT_ID,
+    groupId: process.env.KAFKA_GROUP_ID,
+    topics: {
+      transactionStatus: process.env.KAFKA_TOPIC_MF_TRANSACTION_STATUS,
+      sellResult: process.env.KAFKA_TOPIC_MF_SELL_RESULT,
+    },
+  },
   logger: {
     level: process.env.LOG_LEVEL,
   },
@@ -22,6 +31,7 @@ const config = {
   encryption: {
     secret: process.env.ENC_SECRET || 10,
   },
+  paymentExpiration: process.env.PAYMENT_EXPIRATION || 1,
 };
 
 module.exports = config;

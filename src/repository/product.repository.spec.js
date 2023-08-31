@@ -48,10 +48,10 @@ describe('ProductRepository', () => {
   });
 
   describe('#findOneByProductCode', () => {
-    it('should return empty object when product was not found', async () => {
+    it('should return null when product was not found', async () => {
       const result = await productRepository.findOneByProductCode('SCHPUZ');
 
-      expect(result).toStrictEqual({});
+      expect(result).toStrictEqual(null);
     });
 
     it('should return the product when product was found', async () => {

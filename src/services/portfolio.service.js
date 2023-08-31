@@ -1,3 +1,5 @@
+const { mapPortfolioProduct } = require('./transformation');
+
 class PortfolioService {
   constructor({ repository, logger }) {
     this.repository = repository;
@@ -56,6 +58,18 @@ class PortfolioService {
     };
 
     return this.repository.create(portfolioData);
+  }
+
+  async updateOwnedProduct(cif, portfolioCode, productData) {
+    const portfolio = await this.repository.findOne(cif, portfolioCode);
+    const ownedProducts = portfolio.products;
+    const updatedProduct = mapPortfolioProduct(ownedProducts, productData);
+
+    return this.repository.updateOne(cif, portfolioCode, updatedProduct);
+  }
+
+  async findOne(cif, portfolioCode) {
+    return this.repository.findOne(cif, portfolioCode);
   }
 }
 

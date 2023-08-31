@@ -5,7 +5,7 @@ const router = Router();
 router.post('/accounts', async (req, res, next) => {
   const {
     accountService,
-  } = res.locals;
+  } = req.app.locals.services;
 
   try {
     const result = await accountService.register(req.body);
@@ -20,7 +20,7 @@ router.post('/accounts', async (req, res, next) => {
 router.post('/accounts/login', async (req, res, next) => {
   const {
     accountService,
-  } = res.locals;
+  } = req.app.locals.services;
 
   try {
     const result = await accountService.login(req.body);

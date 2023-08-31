@@ -125,6 +125,31 @@ class PortfolioRepository {
 
     return this.collection.insertOne(portfolioData);
   }
+
+  async findOne(cif, portfolioCode) {
+    const filter = {
+      cif,
+      portfolioCode,
+    };
+
+    return this.collection.findOne(filter);
+  }
+
+  async updateOne(cif, portfolioCode, updatedProducts) {
+    const filter = {
+      cif,
+      portfolioCode,
+    };
+    const update = {
+      $set: { products: updatedProducts },
+    };
+
+    const options = {
+      returnDocument: 'after',
+    };
+
+    return this.collection.updateOne(filter, update, options);
+  }
 }
 
 module.exports = PortfolioRepository;

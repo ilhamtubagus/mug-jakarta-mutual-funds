@@ -63,8 +63,8 @@ describe('PortfolioRepository', () => {
               name: 'Schroder Dana Equity',
               productCategory: 'equity',
               imageUrl: '',
-              sellFee: 0.2,
-              buyFee: 0.2,
+              sellFee: 0.02,
+              buyFee: 0.02,
               capitalInvestment: 10000,
               tax: 0,
               navDate: new Date('2023-08-23'),
@@ -98,6 +98,33 @@ describe('PortfolioRepository', () => {
       expect(
         async () => portfolioCollection.findOne({ cif: expectedPortfolio.cif }),
       ).not.toBeNull();
+    });
+  });
+
+  describe('#findOne', () => {
+    it('should return portfolio for given cif and portfolio code', async () => {
+      const { cif, portfolioCode } = mockPortfolios[0];
+      const expectedPortfolio = mockPortfolios[0];
+
+      const result = await portfolioRepository.findOne(cif, portfolioCode);
+
+      expect(result).toStrictEqual(expectedPortfolio);
+    });
+  });
+
+  describe('#updateOne', () => {
+    it('should return portfolio for given cif and portfolio code', async () => {
+      const { cif, portfolioCode } = mockPortfolios[0];
+      const expectedPortfolio = {
+        ...mockPortfolios[0],
+        products: [],
+      };
+      const updatedProducts = [];
+
+      await portfolioRepository.updateOne(cif, portfolioCode, updatedProducts);
+
+      const updatedPortfolio = await portfolioCollection.findOne({ cif, portfolioCode });
+      await expect(updatedPortfolio).toStrictEqual(expectedPortfolio);
     });
   });
 });

@@ -1,4 +1,5 @@
 const express = require('express');
+const { MongoError } = require('mongodb');
 const CustomError = require('../utils/error.js');
 
 class App {
@@ -7,7 +8,9 @@ class App {
     this.app.locals.logger = opts.logger;
     this.app.locals.config = opts.config;
     this._initializations = opts.initializations;
-    this._teardownServices = opts.teardownServices;
+    this._deinitializations = opts.deinitializations;
+    this._serviceInitializations = opts.serviceInitializations;
+    this._consumer = opts.consumer;
 
     const { pre, post } = opts.middlewares;
 
@@ -30,6 +33,11 @@ class App {
       if (err instanceof CustomError) {
         return res.status(err.statusCode).json(err);
       }
+
+      if (err instanceof MongoError) {
+        return res.status(500).json({ message: 'Database error' });
+      }
+
       return res.status(500).json(err);
     });
   }
@@ -49,6 +57,19 @@ class App {
       }
     }
 
+    if (this._serviceInitializations && this._serviceInitializations.length > 0) {
+      try {
+        this._serviceInitializations.forEach((fn) => {
+          fn(this.app);
+        });
+      } catch (e) {
+        this.app.locals.logger.error(e);
+        throw e;
+      }
+    }
+
+    await this._consumer(this.app);
+
     return new Promise((resolve) => {
       const { config: { server: { port } } } = this.app.locals;
       this._server = this.app.listen(port, () => {
@@ -59,10 +80,10 @@ class App {
   }
 
   async stop() {
-    if (this._teardownServices && this._teardownServices.length > 0) {
+    if (this._deinitializations && this._deinitializations.length > 0) {
       try {
         const fns = [];
-        this._teardownServices.forEach((fn) => {
+        this._deinitializations.forEach((fn) => {
           fns.push(fn(this.app));
         });
 

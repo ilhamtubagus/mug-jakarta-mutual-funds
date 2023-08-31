@@ -1,15 +1,23 @@
 const express = require('express');
 const { createLogger } = require('bunyan');
+const { Kafka } = require('kafkajs');
 const mongodb = require('mongodb');
 const bodyParser = require('body-parser');
 const App = require('./app.js');
 const config = require('../../config.js');
 const { connectToDb, disconnectDb } = require('./db.js');
+const { initializeKafkaProducer, disconnectKafka, initializeKafkaConsumer } = require('./kafka');
+const kafkaConsumerHandler = require('../handler');
+const serviceInitializations = require('../services/initializations');
+
 const routes = require('../routes/index.js');
-const { accountMiddleware, productMiddleware, portfolioMiddleware } = require('../middlewares');
 
 const _dbTearDown = async (expressApp) => {
   await disconnectDb(expressApp);
+};
+
+const _kafkaTearDown = async (expressApp) => {
+  await disconnectKafka(expressApp);
 };
 
 const _stopServer = async (server) => async () => {
@@ -20,7 +28,9 @@ const logger = createLogger({ name: config.server.appName, level: config.logger.
 
 const main = async () => {
   const middlewares = {
-    pre: [bodyParser.json(), accountMiddleware, productMiddleware, portfolioMiddleware],
+    pre: [
+      bodyParser.json(),
+    ],
     post: [],
   };
 
@@ -28,20 +38,30 @@ const main = async () => {
     async (expressApp) => {
       await connectToDb(mongodb, expressApp);
     },
+    async (expressApp) => {
+      await initializeKafkaProducer(Kafka, expressApp);
+    },
   ];
 
-  const teardownServices = [
+  const deinitializations = [
     _dbTearDown,
+    _kafkaTearDown,
   ];
+
+  const consumer = async (app) => {
+    await initializeKafkaConsumer(Kafka, app, kafkaConsumerHandler);
+  };
 
   const server = new App({
     express,
     logger,
     config,
     initializations,
-    teardownServices,
+    deinitializations,
     middlewares,
+    serviceInitializations,
     routes,
+    consumer,
   });
 
   await server.start();
