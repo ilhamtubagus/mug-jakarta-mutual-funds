@@ -12,7 +12,7 @@ portfolioRouter.get('/portfolios', authenticationMiddleware(), async (req, res, 
   const { portfolioService } = req.app.locals.services;
 
   try {
-    const result = await portfolioService.find(user);
+    const result = await portfolioService.getPortfolios(user);
 
     res.status(200).json(result);
     next();

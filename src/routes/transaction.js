@@ -36,7 +36,7 @@ transactionRouter.get('/transactions', authenticationMiddleware(), async (req, r
   const { transactionService } = services;
 
   try {
-    const result = await transactionService.get(user, payload);
+    const result = await transactionService.getTransactionHistory(user, payload);
 
     res.status(200).json(result);
     next();

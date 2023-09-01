@@ -38,6 +38,7 @@ describe('TransactionService', () => {
         create: jest.fn(),
         findOne: jest.fn(),
         update: jest.fn(),
+        find: jest.fn(),
       },
       logger: {
         info: jest.fn(),
@@ -677,6 +678,17 @@ describe('TransactionService', () => {
           status: 'FAILED',
           failReason: payload.failReason,
         });
+      });
+    });
+
+    describe('#getTransactionHistory', () => {
+      it('should call transaction repository find', async () => {
+        const payload = {
+          transactionType: 'BUY',
+          sortBy: 'amount',
+          page: 1,
+        };
+        await transactionService.getTransactionHistory(user, payload);
       });
     });
   });

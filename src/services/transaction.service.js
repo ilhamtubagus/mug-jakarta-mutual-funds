@@ -327,7 +327,7 @@ class TransactionService {
     return processUpdate();
   }
 
-  async get(user, payload) {
+  async getTransactionHistory(user, payload) {
     const { cif } = user;
 
     const result = await this.repository.find(cif, payload);

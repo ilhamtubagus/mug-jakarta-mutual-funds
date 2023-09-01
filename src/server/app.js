@@ -1,3 +1,4 @@
+const cors = require('cors');
 const express = require('express');
 const { MongoError } = require('mongodb');
 const CustomError = require('../utils/error.js');
@@ -13,6 +14,10 @@ class App {
     this._consumer = opts.consumer;
 
     const { pre, post } = opts.middlewares;
+
+    this.app.use(cors({
+      origin: '*',
+    }));
 
     if (pre && pre.length > 0) {
       pre.forEach((middleware) => this.app.use(middleware));
