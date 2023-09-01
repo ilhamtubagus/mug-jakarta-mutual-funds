@@ -32,6 +32,10 @@ const config = {
     secret: process.env.ENC_SECRET || 10,
   },
   paymentExpiration: process.env.PAYMENT_EXPIRATION || 1,
+  realm: {
+    apiKey: process.env.REALM_API_KEY,
+    appId: process.env.REALM_APP_ID,
+  },
 };
 
 module.exports = config;

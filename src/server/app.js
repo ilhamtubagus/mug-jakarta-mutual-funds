@@ -8,7 +8,6 @@ class App {
     this.app.locals.logger = opts.logger;
     this.app.locals.config = opts.config;
     this._initializations = opts.initializations;
-    this._deinitializations = opts.deinitializations;
     this._serviceInitializations = opts.serviceInitializations;
     this._consumer = opts.consumer;
 
@@ -80,19 +79,6 @@ class App {
   }
 
   async stop() {
-    if (this._deinitializations && this._deinitializations.length > 0) {
-      try {
-        const fns = [];
-        this._deinitializations.forEach((fn) => {
-          fns.push(fn(this.app));
-        });
-
-        await Promise.allSettled(fns);
-      } catch (e) {
-        this.app.locals.logger.error(e);
-        throw e;
-      }
-    }
     this._server.close();
   }
 }
