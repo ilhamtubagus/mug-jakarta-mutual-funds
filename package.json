@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "nodemon src/server/index.js | bunyan",
     "test": "jest",
-    "coverage": "jest --coverage",
+    "coverage": "jest --coverage --runInBand",
     "lint": "eslint src config test",
     "lint:fix": "eslint src config test --fix",
     "precommit": "npm run lint"
