@@ -5,8 +5,7 @@ describe('#portfolioInitializations', () => {
     locals: {
       config: {},
       logger: {},
-      db: {
-        collection: jest.fn(),
+      atlasFunctions: {
       },
     },
   };

@@ -1,10 +1,8 @@
-const PortfolioRepository = require('../../repository/portfolio.repository');
 const PortfolioService = require('../portfolio.service');
 
 const portfolioInitializations = (app) => {
-  const { db, logger } = app.locals;
-  const collection = db.collection('portfolios');
-  const repository = new PortfolioRepository({ collection, logger });
+  const { logger, atlasFunctions } = app.locals;
+  const repository = atlasFunctions;
   const portfolioService = new PortfolioService({
     repository,
     logger,

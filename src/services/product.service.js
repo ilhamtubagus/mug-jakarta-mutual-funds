@@ -7,7 +7,7 @@ class ProductService {
   }
 
   async findOneByProductCode(productCode) {
-    return this.repository.findOneByProductCode(productCode);
+    return this.repository.findProductByCode(productCode);
   }
 
   async findProducts(filter) {

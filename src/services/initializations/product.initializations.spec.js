@@ -4,8 +4,7 @@ describe('#productInitializations', () => {
   const mockApp = {
     locals: {
       config: {},
-      db: {
-        collection: jest.fn(),
+      atlasFunctions: {
       },
       logger: {},
     },
