@@ -31,7 +31,7 @@ class App {
       post.forEach((middleware) => this.app.use(middleware));
     }
 
-    this.app.use((err, req, res, next) => {
+    this.app.use((err, req, res) => {
       const { logger } = req.app.locals;
       logger.error(err);
 

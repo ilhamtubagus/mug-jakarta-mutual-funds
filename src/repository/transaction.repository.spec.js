@@ -98,4 +98,65 @@ describe('TransactionRepository', () => {
       expect(result.value).toStrictEqual(expectedResult);
     });
   });
+
+  describe('#findWithFilter', () => {
+    it('should return the found transaction with given filter', async () => {
+      const cif = 'HRSTBDHICE';
+      const payload = { page: 1 };
+
+      const result = await transactionRepository.findWithFilter(cif, payload);
+
+      expect(result).toStrictEqual(mockTransactions);
+    });
+
+    it('should return the found transaction with transactionType filter', async () => {
+      const cif = 'HRSTBDHICE';
+      const payload = {
+        transactionType: 'BUY',
+        page: 1,
+      };
+
+      const result = await transactionRepository.findWithFilter(cif, payload);
+
+      expect(result).toStrictEqual([mockTransactions[0]]);
+    });
+
+    it('should return the found transaction with productCode filter', async () => {
+      const cif = 'HRSTBDHICE';
+      const payload = {
+        productCode: 'SCHE',
+        page: 1,
+      };
+
+      const result = await transactionRepository.findWithFilter(cif, payload);
+
+      expect(result).toStrictEqual([mockTransactions[0]]);
+    });
+
+    it('should return the found transaction sorted by amount ordered ascending', async () => {
+      const cif = 'HRSTBDHICE';
+      const payload = {
+        sortBy: 'amount',
+        order: 'asc',
+        page: 1,
+      };
+
+      const result = await transactionRepository.findWithFilter(cif, payload);
+
+      expect(result).toStrictEqual(mockTransactions);
+    });
+
+    it('should return the found transaction sorted by amount ordered descending', async () => {
+      const cif = 'HRSTBDHICE';
+      const payload = {
+        sortBy: 'amount',
+        order: 'desc',
+        page: 1,
+      };
+
+      const result = await transactionRepository.findWithFilter(cif, payload);
+
+      expect(result).toStrictEqual([mockTransactions[1], mockTransactions[0]]);
+    });
+  });
 });

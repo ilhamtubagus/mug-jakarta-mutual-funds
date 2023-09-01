@@ -41,7 +41,7 @@ class TransactionRepository {
     return this.collection.findOneAndUpdate(query, update, options);
   }
 
-  async find(cif, payload) {
+  async findWithFilter(cif, payload) {
     this.logger.info(`Finding transaction history for cif: ${cif}`);
     const {
       transactionType, productCode, sortBy, page, order,

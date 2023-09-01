@@ -38,7 +38,7 @@ describe('TransactionService', () => {
         create: jest.fn(),
         findOne: jest.fn(),
         update: jest.fn(),
-        find: jest.fn(),
+        findWithFilter: jest.fn(),
       },
       logger: {
         info: jest.fn(),
