@@ -12,5 +12,6 @@ const constants = {
     BUY: 'BUY',
     SELL: 'SELL',
   },
+  OFFSET: 6,
 };
 module.exports = constants;

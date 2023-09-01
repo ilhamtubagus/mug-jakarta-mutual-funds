@@ -326,6 +326,14 @@ class TransactionService {
 
     return processUpdate();
   }
+
+  async get(user, payload) {
+    const { cif } = user;
+
+    const result = await this.repository.find(cif, payload);
+
+    return result;
+  }
 }
 
 module.exports = TransactionService;
