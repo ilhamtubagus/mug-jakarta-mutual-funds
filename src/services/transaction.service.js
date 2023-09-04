@@ -49,7 +49,7 @@ class TransactionService {
   }
 
   async _getProduct(productCode) {
-    let product = await this.productService.findOneByProductCode(productCode);
+    let product = await this.productService.findProductByCode(productCode);
 
     if (!product) {
       throw new CustomError(`Product with code ${productCode} not found`, 400);
@@ -60,7 +60,7 @@ class TransactionService {
   }
 
   async _getPortfolio(cif, portfolioCode) {
-    const portfolio = await this.portfolioService.findOne(cif, portfolioCode);
+    const portfolio = await this.portfolioService.findPortfolio(cif, portfolioCode);
 
     if (!portfolio) {
       throw new CustomError(`Portfolio with code ${portfolioCode} not found`, 400);
@@ -151,7 +151,7 @@ class TransactionService {
   }
 
   async _updateBuyTransaction(transaction, product, paymentCode) {
-    const paymentRequest = await this.paymentRepository.findOne(paymentCode);
+    const paymentRequest = await this.repository.findPaymentRequestByCode(paymentCode);
 
     if (!paymentRequest) {
       throw new CustomError(`Payment code ${paymentCode} not found`, 400);
@@ -235,7 +235,8 @@ class TransactionService {
       product: latestProduct,
       amount: TransactionService._calculateAmount(transaction, latestProduct),
     };
-    const { value: updatedTransaction } = await this.repository.updateTransaction(updateTransactionPayload);
+    const { value: updatedTransaction } = await this.repository
+      .updateTransaction(updateTransactionPayload);
 
     return updatedTransaction;
   }

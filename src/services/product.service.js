@@ -6,7 +6,7 @@ class ProductService {
     this.logger = logger;
   }
 
-  async findOneByProductCode(productCode) {
+  async findProductByCode(productCode) {
     return this.repository.findProductByCode(productCode);
   }
 

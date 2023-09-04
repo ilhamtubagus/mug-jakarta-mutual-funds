@@ -17,8 +17,8 @@ describe('AccountService', () => {
 
   beforeEach(() => {
     mockRepository = {
-      findOneByEmail: jest.fn(),
-      create: jest.fn(),
+      findAccountByEmail: jest.fn(),
+      createAccount: jest.fn(),
     };
     mockLogger = {
       info: jest.fn(),
@@ -45,14 +45,14 @@ describe('AccountService', () => {
 
   describe('#login', () => {
     it('should throw custom error account not found when account is not exist', async () => {
-      mockRepository.findOneByEmail.mockResolvedValue(null);
+      mockRepository.findAccountByEmail.mockResolvedValue(null);
 
       await expect(accountService.login('email@email.com', '123'))
         .rejects.toThrow(new CustomError('Account not found', 404));
     });
 
     it('should throw custom error password did not match when password is incorrect', async () => {
-      mockRepository.findOneByEmail.mockResolvedValueOnce(mockAccounts[0]);
+      mockRepository.findAccountByEmail.mockResolvedValueOnce(mockAccounts[0]);
       mockEncryption.compare.mockReturnValueOnce(false);
 
       await expect(accountService.login('email@email.com', '123'))
@@ -61,7 +61,7 @@ describe('AccountService', () => {
 
     it('should return token when account found and password is correct', async () => {
       const mockUserId = '1';
-      mockRepository.findOneByEmail.mockResolvedValueOnce({
+      mockRepository.findAccountByEmail.mockResolvedValueOnce({
         ...mockAccounts[0],
         _id: mockUserId,
       });
@@ -94,7 +94,7 @@ describe('AccountService', () => {
 
       await accountService.register({ ...mockAccounts[0], password: '123' });
 
-      expect(mockRepository.create).toBeCalledWith(mockAccountPayload);
+      expect(mockRepository.createAccount).toBeCalledWith(mockAccountPayload);
     });
   });
 });

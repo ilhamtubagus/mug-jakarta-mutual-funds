@@ -1,4 +1,3 @@
-const { ProductRepository } = require('../../repository');
 const { ProductService } = require('../index');
 
 const productInitializations = (app) => {

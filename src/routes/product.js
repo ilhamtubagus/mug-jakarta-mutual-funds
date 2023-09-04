@@ -10,7 +10,7 @@ router.get('/products/:productCode', authenticationMiddleware(), async (req, res
 
   try {
     const { productCode } = req.params;
-    const result = await productService.findOneByProductCode(productCode);
+    const result = await productService.findProductByCode(productCode);
 
     res.status(201).json(result);
     return next();

@@ -41,7 +41,7 @@ class PortfolioService {
 
     this.logger.info(`trying to new portfolio for cif: ${cif}`);
 
-    const ownedPortfolio = await this.repository.findPortfoliosByCif(cif);
+    const ownedPortfolio = await this.repository.findPortfoliosByCIF(cif);
     let portfolioCode = '001';
 
     if (ownedPortfolio && ownedPortfolio.length) {
@@ -68,7 +68,7 @@ class PortfolioService {
     return this.repository.updatePortfolioProducts(cif, portfolioCode, updatedProduct);
   }
 
-  async findOne(cif, portfolioCode) {
+  async findPortfolio(cif, portfolioCode) {
     return this.repository.findPortfolio(cif, portfolioCode);
   }
 }

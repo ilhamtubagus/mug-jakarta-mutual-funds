@@ -1,57 +1,46 @@
 const moment = require('moment');
-const mockDate = require('mockdate');
 const { TransactionService } = require('./index');
 const {
-  products, navs, transactions, portfolios,
+  products, navs, transactions, portfolios, payment,
 } = require('../fixtures');
 const CustomError = require('../utils/error');
 
-jest.mock('../utils/generator', () => ({
-  generateId: () => 'generatedId',
-}));
+const mockDate = '2023-09-01T00:00:00.000Z';
+const mockExpiredDate = moment(mockDate).add(1, 'days').toDate();
+
+jest
+  .mock('../utils/generator', () => ({
+    generateId: () => 'generatedId',
+  }))
+  .mock('moment', () => () => jest.requireActual('moment')(mockDate));
 
 describe('TransactionService', () => {
   const user = { cif: 'QWERTY' };
-  const now = new Date();
-  const tomorrow = new Date(moment(now).add(1, 'd').toDate());
   const mockProduct = {
     ...products[0],
     nav: { ...navs[0] },
   };
   delete mockProduct.createdAt;
-  const mockPaymentRequest = {
-    transactionID: 'generatedId',
-    paymentCode: 'generatedId',
-    expiredAt: tomorrow,
-  };
   let opts;
   let transactionService;
-
-  const startSession = {
-    endSession: jest.fn(),
-    withTransaction: jest.fn().mockImplementation((fn) => fn()),
-  };
 
   beforeEach(() => {
     opts = {
       repository: {
-        create: jest.fn(),
-        findOne: jest.fn(),
-        update: jest.fn(),
+        createTransaction: jest.fn(),
+        findTransactionByID: jest.fn(),
+        updateTransaction: jest.fn(),
+        findPaymentRequestByCode: jest.fn(),
       },
       logger: {
         info: jest.fn(),
       },
-      paymentRepository: {
-        create: jest.fn(),
-        findOne: jest.fn(),
-      },
       productService: {
-        findOneByProductCode: jest.fn(),
+        findProductByCode: jest.fn(),
       },
       portfolioService: {
         updateOwnedProduct: jest.fn(),
-        findOne: jest.fn(),
+        findPortfolio: jest.fn(),
       },
       config: {
         paymentExpiration: 1,
@@ -61,30 +50,24 @@ describe('TransactionService', () => {
           },
         },
       },
-      mongoClient: {
-        startSession: jest.fn().mockImplementation(() => startSession),
-      },
       producer: {
         send: jest.fn(),
       },
     };
 
     transactionService = new TransactionService(opts);
-    mockDate.set(now);
   });
 
   afterEach(() => {
-    mockDate.reset();
     jest.clearAllMocks();
   });
 
   describe('#create', () => {
     describe('BUY', () => {
       it('should return payment request data', async () => {
-        opts.productService.findOneByProductCode.mockResolvedValue(mockProduct);
-        opts.repository.create.mockResolvedValue({});
-        opts.paymentRepository.create.mockResolvedValue(mockPaymentRequest);
-        opts.portfolioService.findOne.mockResolvedValue({});
+        opts.productService.findProductByCode.mockResolvedValue(mockProduct);
+        opts.repository.createTransaction.mockResolvedValue({});
+        opts.portfolioService.findPortfolio.mockResolvedValue({});
         const payload = {
           amount: 20000,
           productCode: 'SCHE',
@@ -92,9 +75,11 @@ describe('TransactionService', () => {
           portfolioCode: '001',
         };
         const expectedResult = {
-          ...mockPaymentRequest,
           ...payload,
           status: 'PENDING',
+          transactionID: 'generatedId',
+          paymentCode: 'generatedId',
+          expiredAt: mockExpiredDate,
         };
 
         const result = await transactionService.create(user, payload);
@@ -115,17 +100,21 @@ describe('TransactionService', () => {
       });
 
       it('should call create transaction with constructed transaction data', async () => {
-        opts.productService.findOneByProductCode.mockResolvedValue(mockProduct);
-        opts.repository.create.mockResolvedValue();
-        opts.portfolioService.findOne.mockResolvedValue({ portfolioCode: '001' });
-        opts.paymentRepository.create.mockResolvedValue(mockPaymentRequest);
+        opts.productService.findProductByCode.mockResolvedValue(mockProduct);
+        opts.repository.createTransaction.mockResolvedValue();
+        opts.portfolioService.findPortfolio.mockResolvedValue({ portfolioCode: '001' });
         const payload = {
           amount: 20000,
           productCode: 'SCHE',
           type: 'BUY',
           portfolioCode: '001',
         };
-        const expected = {
+        const expectedPaymentRequestData = {
+          transactionID: 'generatedId',
+          paymentCode: 'generatedId',
+          expiredAt: mockExpiredDate,
+        };
+        const expectedTransactionDate = {
           transactionID: 'generatedId',
           cif: user.cif,
           amount: 20000,
@@ -140,31 +129,14 @@ describe('TransactionService', () => {
 
         await transactionService.create(user, payload);
 
-        expect(opts.repository.create).toBeCalledWith(expected, startSession);
-      });
-
-      it('should call request payment with generated transaction id', async () => {
-        opts.productService.findOneByProductCode.mockResolvedValue(mockProduct);
-        opts.repository.create.mockResolvedValue();
-        opts.portfolioService.findOne.mockResolvedValue({ portfolioCode: '001' });
-        opts.paymentRepository.create.mockResolvedValue(mockPaymentRequest);
-        const payload = {
-          amount: 20000,
-          productCode: 'SCHE',
-          type: 'BUY',
-          portfolioCode: '001',
-        };
-
-        await transactionService.create(user, payload);
-
-        expect(opts.paymentRepository.create).toBeCalledWith(mockPaymentRequest, startSession);
+        expect(opts.repository.createTransaction)
+          .toBeCalledWith(expectedTransactionDate, expectedPaymentRequestData);
       });
 
       it('should throw error when portfolio is not found', async () => {
-        opts.productService.findOneByProductCode.mockResolvedValue(mockProduct);
-        opts.repository.create.mockResolvedValue();
-        opts.portfolioService.findOne.mockReturnValue(null);
-        opts.paymentRepository.create.mockResolvedValue(mockPaymentRequest);
+        opts.productService.findProductByCode.mockResolvedValue(mockProduct);
+        opts.repository.createTransaction.mockResolvedValue();
+        opts.portfolioService.findPortfolio.mockReturnValue(null);
         const payload = {
           amount: 20000,
           productCode: 'SCHE',
@@ -177,10 +149,9 @@ describe('TransactionService', () => {
       });
 
       it('should throw error when product is not found', async () => {
-        opts.productService.findOneByProductCode.mockResolvedValue(null);
-        opts.repository.create.mockResolvedValue();
-        opts.portfolioService.findOne.mockReturnValue({ portfolioCode: '001' });
-        opts.paymentRepository.create.mockResolvedValue(mockPaymentRequest);
+        opts.productService.findProductByCode.mockResolvedValue(null);
+        opts.repository.createTransaction.mockResolvedValue();
+        opts.portfolioService.findPortfolio.mockReturnValue({ portfolioCode: '001' });
         const payload = {
           amount: 20000,
           productCode: 'SCHE',
@@ -195,7 +166,7 @@ describe('TransactionService', () => {
 
     describe('SELL', () => {
       it('should throw error when portfolio is not found', async () => {
-        opts.portfolioService.findOne.mockReturnValue(null);
+        opts.portfolioService.findPortfolio.mockReturnValue(null);
         const payload = {
           units: 10,
           productCode: 'SCHE',
@@ -208,7 +179,7 @@ describe('TransactionService', () => {
       });
 
       it('should throw error when product to be sell is not in portfolio', async () => {
-        opts.portfolioService.findOne.mockReturnValue(portfolios[0]);
+        opts.portfolioService.findPortfolio.mockReturnValue(portfolios[0]);
         const payload = {
           units: 10,
           productCode: 'SCHPU',
@@ -221,7 +192,7 @@ describe('TransactionService', () => {
       });
 
       it('should throw error when current product units in portfolio is lower that requested units to sell', async () => {
-        opts.portfolioService.findOne.mockReturnValue(portfolios[0]);
+        opts.portfolioService.findPortfolio.mockReturnValue(portfolios[0]);
         const payload = {
           units: 101,
           productCode: 'SCHE',
@@ -234,8 +205,8 @@ describe('TransactionService', () => {
       });
 
       it('should throw error when product is not found in product repository', async () => {
-        opts.portfolioService.findOne.mockReturnValue(portfolios[0]);
-        opts.productService.findOneByProductCode.mockResolvedValue(null);
+        opts.portfolioService.findPortfolio.mockReturnValue(portfolios[0]);
+        opts.productService.findProductByCode.mockResolvedValue(null);
         const payload = {
           units: 10,
           productCode: 'SCHE',
@@ -248,8 +219,8 @@ describe('TransactionService', () => {
       });
 
       it('should call create transaction with constructed transaction data', async () => {
-        opts.portfolioService.findOne.mockReturnValue(portfolios[0]);
-        opts.productService.findOneByProductCode.mockResolvedValue(mockProduct);
+        opts.portfolioService.findPortfolio.mockReturnValue(portfolios[0]);
+        opts.productService.findProductByCode.mockResolvedValue(mockProduct);
         const payload = {
           units: 10,
           productCode: 'SCHE',
@@ -270,7 +241,7 @@ describe('TransactionService', () => {
 
         await transactionService.create(user, payload);
 
-        expect(opts.repository.create).toBeCalledWith(expected);
+        expect(opts.repository.createTransaction).toBeCalledWith(expected);
       });
     });
   });
@@ -290,7 +261,7 @@ describe('TransactionService', () => {
         const payload = {
           status: 'SETTLED', transactionID: 'YIP9YIYUKPQDSOW', paymentCode: 'YIP9YIYUKPQDSOA',
         };
-        opts.repository.findOne.mockResolvedValue(null);
+        opts.repository.findTransactionByID.mockResolvedValue(null);
 
         await expect(transactionService.updateTransaction(payload))
           .rejects.toThrow(new CustomError('Transaction not found', 400));
@@ -300,8 +271,8 @@ describe('TransactionService', () => {
         const payload = {
           status: 'SETTLED', transactionID: 'YIP9YIYUKPQDSOW', paymentCode: 'YIP9YIYUKPQDSOA',
         };
-        opts.repository.findOne.mockResolvedValue(transactions[0]);
-        opts.productService.findOneByProductCode.mockResolvedValue(null);
+        opts.repository.findTransactionByID.mockResolvedValue(transactions[0]);
+        opts.productService.findProductByCode.mockResolvedValue(null);
 
         await expect(transactionService.updateTransaction(payload))
           .rejects.toThrow(new CustomError(`Product with code ${transactions[0].product.productCode} not found`, 400));
@@ -312,8 +283,8 @@ describe('TransactionService', () => {
           const payload = {
             status: 'SETTLED', transactionID: 'YIP9YIYUKPQDSOW', paymentCode: 'YIP9YIYUKPQDSOA',
           };
-          opts.repository.findOne.mockResolvedValue({ ...transactions[0], status: 'SETTLED' });
-          opts.productService.findOneByProductCode.mockResolvedValue(null);
+          opts.repository.findTransactionByID.mockResolvedValue({ ...transactions[0], status: 'SETTLED' });
+          opts.productService.findProductByCode.mockResolvedValue(null);
 
           await expect(transactionService.updateTransaction(payload))
             .rejects.toThrow(new CustomError('Transaction already updated', 400));
@@ -323,15 +294,14 @@ describe('TransactionService', () => {
           const payload = {
             status: 'SETTLED', transactionID: 'YIP9YIYUKPQDSOW', paymentCode: 'YIP9YIYUKPQDSOA',
           };
-          opts.repository.findOne.mockResolvedValue(transactions[0]);
-          opts.productService.findOneByProductCode.mockResolvedValue({
+          opts.repository.findTransactionByID.mockResolvedValue(transactions[0]);
+          opts.productService.findProductByCode.mockResolvedValue({
             ...products[0],
             nav: {
               currentValue: 10000,
             },
           });
-          opts.paymentRepository.findOne.mockResolvedValue(null);
-          opts.portfolioService.findOne.mockReturnValue(portfolios[0]);
+          opts.portfolioService.findPortfolio.mockReturnValue(portfolios[0]);
 
           await expect(transactionService.updateTransaction(payload))
             .rejects.toThrow(new CustomError(`Payment code ${payload.paymentCode} not found`, 400));
@@ -343,18 +313,15 @@ describe('TransactionService', () => {
           const payload = {
             status: 'SETTLED', transactionID, paymentCode,
           };
-          opts.repository.findOne.mockResolvedValue(transactions[0]);
-          opts.productService.findOneByProductCode.mockResolvedValue({
+          opts.repository.findTransactionByID.mockResolvedValue(transactions[0]);
+          opts.repository.findPaymentRequestByCode.mockReturnValue(payment[0]);
+          opts.productService.findProductByCode.mockResolvedValue({
             ...products[0],
             nav: {
               currentValue: 10000,
             },
           });
-          opts.paymentRepository.findOne.mockResolvedValue({
-            paymentCode,
-            transactionID: 'YIP9YIYUKPQDSOQ',
-          });
-          opts.portfolioService.findOne.mockReturnValue(portfolios[0]);
+          opts.portfolioService.findPortfolio.mockReturnValue(portfolios[0]);
 
           await expect(transactionService.updateTransaction(payload))
             .rejects.toThrow(new CustomError(`Invalid payment code ${payload.paymentCode}`, 400));
@@ -367,15 +334,17 @@ describe('TransactionService', () => {
             status: 'SETTLED', transactionID, paymentCode: 'YIP9YIYUKPQDSOA',
           };
           const mockTransaction = { ...transactions[0], product: mockProduct };
-          opts.repository.findOne.mockResolvedValue(mockTransaction);
-          opts.productService.findOneByProductCode.mockResolvedValue(mockProduct);
-          opts.paymentRepository.findOne.mockResolvedValue({
+          const mockPaymentRequest = {
+            ...payment[0],
             paymentCode,
-            transactionID,
-          });
+            transactionID: mockTransaction.transactionID,
+          };
+          opts.repository.findTransactionByID.mockResolvedValue(mockTransaction);
+          opts.repository.findPaymentRequestByCode.mockReturnValue(mockPaymentRequest);
+          opts.productService.findProductByCode.mockResolvedValue(mockProduct);
           const calculatedUnits = (mockTransaction.amount
               - (mockTransaction.amount * mockProduct.buyFee)) / mockProduct.nav.currentValue;
-          opts.repository.update.mockResolvedValue({
+          opts.repository.updateTransaction.mockResolvedValue({
             value: {
               ...mockTransaction,
               status: 'SETTLED',
@@ -386,11 +355,12 @@ describe('TransactionService', () => {
               },
             },
           });
-          opts.portfolioService.findOne.mockReturnValue(portfolios[0]);
+          opts.portfolioService.findPortfolio.mockReturnValue(portfolios[0]);
 
           await transactionService.updateTransaction(payload);
 
-          expect(opts.repository.update).toBeCalledWith(transactionID, {
+          expect(opts.repository.updateTransaction).toBeCalledWith({
+            transactionID,
             status: 'SETTLED',
             product: {
               ...mockProduct,
@@ -423,16 +393,18 @@ describe('TransactionService', () => {
             tax: 0.01,
           };
           const mockTransaction = { ...transactions[0], product: mockProductWithTax };
-          opts.repository.findOne.mockResolvedValue(mockTransaction);
-          opts.productService.findOneByProductCode.mockResolvedValue(mockProductWithTax);
-          opts.paymentRepository.findOne.mockResolvedValue({
+          const mockPaymentRequest = {
+            ...payment[0],
             paymentCode,
-            transactionID,
-          });
+            transactionID: mockTransaction.transactionID,
+          };
+          opts.repository.findTransactionByID.mockResolvedValue(mockTransaction);
+          opts.repository.findPaymentRequestByCode.mockReturnValue(mockPaymentRequest);
+          opts.productService.findProductByCode.mockResolvedValue(mockProductWithTax);
           const calculatedUnits = (mockTransaction.amount
                   - (mockTransaction.amount * mockProductWithTax.tax))
               / mockProductWithTax.nav.currentValue;
-          opts.repository.update.mockResolvedValue({
+          opts.repository.updateTransaction.mockResolvedValue({
             value: {
               ...mockTransaction,
               status: 'SETTLED',
@@ -443,11 +415,12 @@ describe('TransactionService', () => {
               },
             },
           });
-          opts.portfolioService.findOne.mockReturnValue(portfolios[0]);
+          opts.portfolioService.findPortfolio.mockReturnValue(portfolios[0]);
 
           await transactionService.updateTransaction(payload);
 
-          expect(opts.repository.update).toBeCalledWith(transactionID, {
+          expect(opts.repository.updateTransaction).toBeCalledWith({
+            transactionID,
             status: 'SETTLED',
             product: {
               ...mockProductWithTax,
@@ -482,9 +455,9 @@ describe('TransactionService', () => {
           const payload = {
             status: 'SETTLED', transactionID,
           };
-          opts.repository.findOne.mockResolvedValue(mockTransaction);
-          opts.productService.findOneByProductCode.mockResolvedValue(mockProduct);
-          opts.portfolioService.findOne.mockReturnValue(portfolios[1]);
+          opts.repository.findTransactionByID.mockResolvedValue(mockTransaction);
+          opts.productService.findProductByCode.mockResolvedValue(mockProduct);
+          opts.portfolioService.findPortfolio.mockReturnValue(portfolios[1]);
 
           await expect(transactionService.updateTransaction(payload))
             .rejects.toThrow(new CustomError('Product is not found in your portfolio', 400));
@@ -499,14 +472,15 @@ describe('TransactionService', () => {
           const payload = {
             status: 'SETTLED', transactionID,
           };
-          opts.repository.findOne.mockResolvedValue(mockTransaction);
-          opts.productService.findOneByProductCode.mockResolvedValue(mockProduct);
-          opts.portfolioService.findOne.mockReturnValue(portfolios[1]);
+          opts.repository.findTransactionByID.mockResolvedValue(mockTransaction);
+          opts.productService.findProductByCode.mockResolvedValue(mockProduct);
+          opts.portfolioService.findPortfolio.mockReturnValue(portfolios[1]);
 
           try {
             await transactionService.updateTransaction(payload);
           } catch (e) {
-            expect(opts.repository.update).toBeCalledWith(transactionID, {
+            expect(opts.repository.updateTransaction).toBeCalledWith({
+              transactionID,
               status: 'FAILED',
               product: { ...mockProduct, nav: navs[0].currentValue },
               failReason: 'Available units is not sufficient',
@@ -525,10 +499,10 @@ describe('TransactionService', () => {
           };
           const grossAmount = (mockTransaction.units * mockProduct.nav.currentValue);
           const calculatedAmount = grossAmount - (grossAmount * mockProduct.sellFee);
-          opts.repository.findOne.mockResolvedValue(mockTransaction);
-          opts.productService.findOneByProductCode.mockResolvedValue(mockProduct);
-          opts.portfolioService.findOne.mockReturnValue(portfolios[1]);
-          opts.repository.update.mockResolvedValue({
+          opts.repository.findTransactionByID.mockResolvedValue(mockTransaction);
+          opts.productService.findProductByCode.mockResolvedValue(mockProduct);
+          opts.portfolioService.findPortfolio.mockReturnValue(portfolios[1]);
+          opts.repository.updateTransaction.mockResolvedValue({
             value: {
               ...mockTransaction,
               status: 'SETTLED',
@@ -568,11 +542,11 @@ describe('TransactionService', () => {
           };
           const grossAmount = (mockTransaction.units * mockProductWithTax.nav.currentValue);
           const calculatedAmount = grossAmount - (grossAmount * mockProductWithTax.tax);
-          opts.repository.findOne.mockResolvedValue(mockTransaction);
+          opts.repository.findTransactionByID.mockResolvedValue(mockTransaction);
           delete mockProductWithTax.sellFee;
-          opts.productService.findOneByProductCode.mockResolvedValue(mockProductWithTax);
-          opts.portfolioService.findOne.mockReturnValue(portfolios[1]);
-          opts.repository.update.mockResolvedValue({
+          opts.productService.findProductByCode.mockResolvedValue(mockProductWithTax);
+          opts.portfolioService.findPortfolio.mockReturnValue(portfolios[1]);
+          opts.repository.updateTransaction.mockResolvedValue({
             value: {
               ...mockTransaction,
               status: 'SETTLED',
@@ -605,7 +579,7 @@ describe('TransactionService', () => {
         const payload = {
           status: 'FAILED', transactionID: 'YIP9YIYUKPQDSOW', paymentCode: 'YIP9YIYUKPQDSOA',
         };
-        opts.repository.findOne.mockResolvedValue(null);
+        opts.repository.findTransactionByID.mockResolvedValue(null);
 
         await expect(transactionService.updateTransaction(payload))
           .rejects.toThrow(new CustomError('Transaction not found', 400));
@@ -619,7 +593,7 @@ describe('TransactionService', () => {
           ...transactions[0],
           status: 'SETTLED',
         };
-        opts.repository.findOne.mockResolvedValue(mockTransaction);
+        opts.repository.findTransactionByID.mockResolvedValue(mockTransaction);
 
         await expect(transactionService.updateTransaction(payload))
           .rejects.toThrow(new CustomError('Transaction already updated', 400));
@@ -633,7 +607,7 @@ describe('TransactionService', () => {
           ...transactions[0],
           status: 'FAILED',
         };
-        opts.repository.findOne.mockResolvedValue(mockTransaction);
+        opts.repository.findTransactionByID.mockResolvedValue(mockTransaction);
 
         await expect(transactionService.updateTransaction(payload))
           .rejects.toThrow(new CustomError('Transaction already updated', 400));
@@ -648,11 +622,12 @@ describe('TransactionService', () => {
           status: 'PENDING',
         };
         const { transactionID } = payload;
-        opts.repository.findOne.mockResolvedValue(mockTransaction);
+        opts.repository.findTransactionByID.mockResolvedValue(mockTransaction);
 
         await transactionService.updateTransaction(payload);
 
-        expect(opts.repository.update).toBeCalledWith(transactionID, {
+        expect(opts.repository.updateTransaction).toBeCalledWith({
+          transactionID,
           status: 'FAILED',
         });
       });
@@ -669,11 +644,12 @@ describe('TransactionService', () => {
           status: 'PENDING',
         };
         const { transactionID } = payload;
-        opts.repository.findOne.mockResolvedValue(mockTransaction);
+        opts.repository.findTransactionByID.mockResolvedValue(mockTransaction);
 
         await transactionService.updateTransaction(payload);
 
-        expect(opts.repository.update).toBeCalledWith(transactionID, {
+        expect(opts.repository.updateTransaction).toBeCalledWith({
+          transactionID,
           status: 'FAILED',
           failReason: payload.failReason,
         });
