@@ -29,7 +29,7 @@ const transactions = [
   {
     transactionID: 'GT1LXXJW9UHZL1Z',
     cif: 'HRSTBDHICE',
-    amount: 20000,
+    amount: 20001,
     units: 12.5,
     product: {
       name: 'Schroder Dana Pasar Uang',

@@ -1,5 +1,5 @@
-const express = require('express');
 const cors = require('cors');
+const express = require('express');
 const { MongoDBRealmError } = require('realm-web');
 const CustomError = require('../utils/error.js');
 
@@ -30,7 +30,7 @@ class App {
       post.forEach((middleware) => this.app.use(middleware));
     }
 
-    this.app.use((err, req, res, next) => {
+    this.app.use((err, req, res) => {
       const { logger } = req.app.locals;
       logger.error(err);
 
