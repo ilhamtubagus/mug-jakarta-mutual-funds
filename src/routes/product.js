@@ -22,7 +22,7 @@ router.get('/products/:productCode', authenticationMiddleware(), async (req, res
 router.get('/products', authenticationMiddleware(), async (req, res, next) => {
   const {
     productService,
-  } = res.locals;
+  } = req.app.locals.services;
 
   try {
     const result = await productService.findProducts(req.query);
