@@ -7,8 +7,6 @@ entity Account {
     *nik: string
     *cif: string
     *dateOfBirth: string
-    *riskProfile: riskProfileType
-    portfolios: Array<Portfolio>
     createdAt: Date
     modifiedAt: Date
 }
@@ -17,7 +15,6 @@ entity Portfolio {
     *cif: string
     *name: string
     *portfolioCode: string
-    products: Array<PortfolioProduct>
     createdAt: Date
     modifiedAt: Date
 }
@@ -82,10 +79,7 @@ entity Transaction {
     *cif: string
     amount: string
     units: string
-    *product: Product
-    *type: TransactionType
     *portfolioCode: string
-    *status: string
     failReason: string
 }
 
