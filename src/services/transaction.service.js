@@ -327,7 +327,7 @@ class TransactionService {
   async getTransactionHistory(user, payload) {
     const { cif } = user;
 
-    const result = await this.repository.findWithFilter(cif, payload);
+    const result = await this.repository.findTransactions(cif, payload);
 
     return result;
   }

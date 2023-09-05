@@ -31,7 +31,7 @@ describe('TransactionService', () => {
         findTransactionByID: jest.fn(),
         updateTransaction: jest.fn(),
         findPaymentRequestByCode: jest.fn(),
-        findWithFilter: jest.fn(),
+        findTransactions: jest.fn(),
       },
       logger: {
         info: jest.fn(),
