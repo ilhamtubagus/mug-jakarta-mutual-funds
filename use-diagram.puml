@@ -1,13 +1,13 @@
 @startuml
 left to right direction
-actor Customer
-actor "Payment Gateway"
-rectangle "Mutual Fund" {
-    usecase Login
-    usecase "Browse Catalog Mutual Fund"
-    usecase "Checkout"
-    usecase "Update Transaction Status"
-    usecase "Check Transaction History"
+actor Customer #00684a;line:green;line.bold;text:green
+actor "Payment Gateway" #00684a;line:green;line.bold;text:green
+rectangle "Mutual Fund" #00000000;line:green;text:green{
+    usecase Login #00684a;line:green;line.bold;text:white
+    usecase "Browse Catalog Mutual Fund" #00684a;line:green;line.bold;text:white
+    usecase "Checkout" #00684a;line:green;line.bold;text:white
+    usecase "Update Transaction Status" #00684a;line:green;line.bold;text:white
+    usecase "Check Transaction History" #00684a;line:green;line.bold;text:white
 }
 
 Customer --> Login
