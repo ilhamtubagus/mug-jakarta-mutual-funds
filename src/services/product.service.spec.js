@@ -7,7 +7,7 @@ describe('ProductService', () => {
 
   beforeEach(() => {
     mockRepository = {
-      findOneByProductCode: jest.fn(),
+      findProductByCode: jest.fn(),
       findProducts: jest.fn(),
     };
     mockLogger = {
@@ -18,10 +18,10 @@ describe('ProductService', () => {
   });
 
   describe('#finOneByProductCode', () => {
-    it('should invoke findOneByProductCode', async () => {
-      await productService.findOneByProductCode('SCH');
+    it('should invoke findProductByCode', async () => {
+      await productService.findProductByCode('SCH');
 
-      expect(mockRepository.findOneByProductCode).toBeCalledWith('SCH');
+      expect(mockRepository.findProductByCode).toBeCalledWith('SCH');
     });
   });
 

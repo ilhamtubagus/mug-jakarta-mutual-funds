@@ -1,4 +1,4 @@
-const { initializeKafkaProducer, disconnectKafka, initializeKafkaConsumer } = require('./kafka');
+const { initializeKafkaProducer, initializeKafkaConsumer } = require('./kafka');
 
 describe('kafka', () => {
   const connect = jest.fn();
@@ -43,25 +43,16 @@ describe('kafka', () => {
 
   describe('#initializeKafkaProducer', () => {
     it('should assign producer into app.locals', async () => {
-      await initializeKafkaProducer(mockKafka, mockApp);
+      await initializeKafkaProducer(mockKafka)(mockApp);
 
       expect(mockKafka.producer).toBeCalled();
       expect(mockApp.locals.producer).toBeDefined();
     });
   });
 
-  describe('#disconnectKafka', () => {
-    it('should assign producer into app.locals', async () => {
-      await disconnectKafka(mockApp);
-
-      expect(mockKafka.producer.disconnect).toBeCalled();
-      expect(mockKafka.consumer.disconnect).toBeCalled();
-    });
-  });
-
   describe('#initializeKafkaConsumer', () => {
     it('should instantiate kafka consumer, connect, subscribe, and run', async () => {
-      await initializeKafkaConsumer(mockKafka, mockApp, mockHandler);
+      await initializeKafkaConsumer(mockKafka, mockHandler)(mockApp);
 
       expect(mockKafka.consumer).toBeCalledWith({ groupId: mockApp.locals.config.kafka.groupId });
       expect(mockKafka.consumer.connect).toBeCalled();
@@ -74,7 +65,7 @@ describe('kafka', () => {
     });
 
     it('should parsed message when each message handler invoked', async () => {
-      await initializeKafkaConsumer(mockKafka, mockApp, mockHandler);
+      await initializeKafkaConsumer(mockKafka, mockHandler)(mockApp);
       const eachMessageHandler = mockKafka.consumer.run.mock.calls[0][0].eachMessage;
       const mockMessage = {
         value: Buffer.from(JSON.stringify({ test: 'data' })),

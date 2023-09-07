@@ -31,7 +31,7 @@ class PortfolioService {
     this.logger.info(`trying to get portfolio for cif: ${user.cif}`);
 
     const { cif } = user;
-    const portfolios = await this.repository.findByCif(cif);
+    const portfolios = await this.repository.findPortfoliosByCIF(cif);
 
     return PortfolioService.calculateGainLoss(portfolios);
   }
@@ -41,7 +41,7 @@ class PortfolioService {
 
     this.logger.info(`trying to new portfolio for cif: ${cif}`);
 
-    const ownedPortfolio = await this.repository.findByCif(cif);
+    const ownedPortfolio = await this.repository.findPortfoliosByCIF(cif);
     let portfolioCode = '001';
 
     if (ownedPortfolio && ownedPortfolio.length) {
@@ -57,19 +57,19 @@ class PortfolioService {
       modifiedAt: new Date(),
     };
 
-    return this.repository.create(portfolioData);
+    return this.repository.createPortfolio(portfolioData);
   }
 
   async updateOwnedProduct(cif, portfolioCode, productData) {
-    const portfolio = await this.repository.findOne(cif, portfolioCode);
+    const portfolio = await this.repository.findPortfolio(cif, portfolioCode);
     const ownedProducts = portfolio.products;
     const updatedProduct = mapPortfolioProduct(ownedProducts, productData);
 
-    return this.repository.updateOne(cif, portfolioCode, updatedProduct);
+    return this.repository.updatePortfolioProducts(cif, portfolioCode, updatedProduct);
   }
 
-  async findOne(cif, portfolioCode) {
-    return this.repository.findOne(cif, portfolioCode);
+  async findPortfolio(cif, portfolioCode) {
+    return this.repository.findPortfolio(cif, portfolioCode);
   }
 }
 

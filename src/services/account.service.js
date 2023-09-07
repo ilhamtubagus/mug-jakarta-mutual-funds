@@ -24,13 +24,14 @@ class AccountService {
 
   async login({ email, password }) {
     this.logger.info(this.constructor.name, `Login with email ${email}`);
-    const account = await this.repository.findOneByEmail(email);
+    const account = await this.repository.findAccountByEmail(email);
     this.logger.info(account);
     if (!account) {
       throw new CustomError('Account not found', 404);
     }
 
     const { password: cipherPassword } = account;
+    this.logger.info(account);
     const { encryption: { secret } } = this.config;
     const match = this.encryption.compare(cipherPassword, password, secret);
 
@@ -57,7 +58,7 @@ class AccountService {
       password: encryptedPassword,
     };
 
-    return this.repository.create(account);
+    return this.repository.createAccount(account);
   }
 }
 

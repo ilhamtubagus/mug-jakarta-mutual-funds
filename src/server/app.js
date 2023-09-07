@@ -1,6 +1,6 @@
 const cors = require('cors');
 const express = require('express');
-const { MongoError } = require('mongodb');
+const { MongoDBRealmError } = require('realm-web');
 const CustomError = require('../utils/error.js');
 
 class App {
@@ -9,7 +9,6 @@ class App {
     this.app.locals.logger = opts.logger;
     this.app.locals.config = opts.config;
     this._initializations = opts.initializations;
-    this._deinitializations = opts.deinitializations;
     this._serviceInitializations = opts.serviceInitializations;
     this._consumer = opts.consumer;
 
@@ -31,7 +30,7 @@ class App {
       post.forEach((middleware) => this.app.use(middleware));
     }
 
-    this.app.use((err, req, res) => {
+    this.app.use((err, req, res, next) => {
       const { logger } = req.app.locals;
       logger.error(err);
 
@@ -39,8 +38,8 @@ class App {
         return res.status(err.statusCode).json(err);
       }
 
-      if (err instanceof MongoError) {
-        return res.status(500).json({ message: 'Database error' });
+      if (err instanceof MongoDBRealmError) {
+        return res.status(500).json({ message: 'Database error', err });
       }
 
       return res.status(500).json(err);
@@ -85,19 +84,6 @@ class App {
   }
 
   async stop() {
-    if (this._deinitializations && this._deinitializations.length > 0) {
-      try {
-        const fns = [];
-        this._deinitializations.forEach((fn) => {
-          fns.push(fn(this.app));
-        });
-
-        await Promise.allSettled(fns);
-      } catch (e) {
-        this.app.locals.logger.error(e);
-        throw e;
-      }
-    }
     this._server.close();
   }
 }

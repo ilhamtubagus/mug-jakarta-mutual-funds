@@ -1,27 +1,17 @@
-const {
-  TransactionRepository, PaymentRepository,
-} = require('../../repository');
 const { TransactionService } = require('../index');
 
 const transactionInitializations = (app) => {
   const {
-    db, logger, config, mongoClient, services, producer,
+    atlasFunctions, logger, config, services, producer,
   } = app.locals;
   const { productService, portfolioService } = services;
 
-  const paymentCollection = db.collection('paymentRequests');
-  const paymentRepository = new PaymentRepository({ collection: paymentCollection, logger });
-
-  const collection = db.collection('transactions');
-  const transactionRepository = new TransactionRepository({ collection, logger });
   const transactionService = new TransactionService({
-    repository: transactionRepository,
+    repository: atlasFunctions,
     logger,
-    paymentRepository,
     productService,
     portfolioService,
     config,
-    mongoClient,
     producer,
   });
 

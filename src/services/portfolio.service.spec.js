@@ -10,10 +10,10 @@ describe('PortfolioService', () => {
 
   beforeEach(() => {
     mockRepository = {
-      findByCif: jest.fn(),
-      create: jest.fn(),
-      findOne: jest.fn(),
-      updateOne: jest.fn(),
+      findPortfoliosByCIF: jest.fn(),
+      createPortfolio: jest.fn(),
+      findPortfolio: jest.fn(),
+      updatePortfolioProducts: jest.fn(),
     };
     mockLogger = {
       info: jest.fn(),
@@ -28,7 +28,7 @@ describe('PortfolioService', () => {
         cif: 'HRSTBDHICE',
         portfolioCode: '001',
         name: 'Coba 1',
-        createdAt: new Date('2023-08-10'),
+        createPortfoliodAt: new Date('2023-08-10'),
         modifiedAt: new Date('2023-08-19'),
         products: [
           {
@@ -56,7 +56,7 @@ describe('PortfolioService', () => {
 
   describe('#find', () => {
     it('should return found portfolio from repository', async () => {
-      mockRepository.findByCif.mockResolvedValue(mockPortfolios);
+      mockRepository.findPortfoliosByCIF.mockResolvedValue(mockPortfolios);
       const expectedResult = [
         {
           ...mockPortfolios[0],
@@ -84,9 +84,9 @@ describe('PortfolioService', () => {
     });
   });
 
-  describe('#create', () => {
+  describe('#createPortfolio', () => {
     it('should add new portfolio into repository', async () => {
-      mockRepository.findByCif.mockResolvedValue([]);
+      mockRepository.findPortfoliosByCIF.mockResolvedValue([]);
       const user = {
         cif: mockPortfolios[0].cif,
       };
@@ -102,11 +102,11 @@ describe('PortfolioService', () => {
 
       await portfolioService.create(user, portfolioName);
 
-      expect(mockRepository.create).toBeCalledWith(expectedData);
+      expect(mockRepository.createPortfolio).toBeCalledWith(expectedData);
     });
 
     it('should increment portfolioCode when user already has a portfolio', async () => {
-      mockRepository.findByCif.mockResolvedValue(mockPortfolios);
+      mockRepository.findPortfoliosByCIF.mockResolvedValue(mockPortfolios);
       const user = {
         cif: mockPortfolios[0].cif,
       };
@@ -122,13 +122,13 @@ describe('PortfolioService', () => {
 
       await portfolioService.create(user, portfolioName);
 
-      expect(mockRepository.create).toBeCalledWith(expectedData);
+      expect(mockRepository.createPortfolio).toBeCalledWith(expectedData);
     });
   });
 
   describe('#updateOwnedProduct', () => {
     it('should save updated portfolio to repository', async () => {
-      mockRepository.findOne.mockResolvedValue(mockPortfolios[0]);
+      mockRepository.findPortfolio.mockResolvedValue(mockPortfolios[0]);
       const { cif, portfolioCode } = mockPortfolios[0];
       const productData = {
         productCode: 'SCHE',
@@ -143,19 +143,19 @@ describe('PortfolioService', () => {
       }];
       await portfolioService.updateOwnedProduct(cif, portfolioCode, productData);
 
-      expect(mockRepository.updateOne)
+      expect(mockRepository.updatePortfolioProducts)
         .toBeCalledWith(...[cif, portfolioCode, updatedProduct]);
     });
   });
 
-  describe('#findOne', () => {
+  describe('#findPortfolio', () => {
     it('should return portfolio for given user', async () => {
-      mockRepository.findOne.mockResolvedValue(mockPortfolios[0]);
+      mockRepository.findPortfolio.mockResolvedValue(mockPortfolios[0]);
       const { cif, portfolioCode } = mockPortfolios[0];
 
-      await portfolioService.findOne(cif, portfolioCode);
+      await portfolioService.findPortfolio(cif, portfolioCode);
 
-      expect(mockRepository.findOne).toBeCalledWith(cif, portfolioCode);
+      expect(mockRepository.findPortfolio).toBeCalledWith(cif, portfolioCode);
     });
   });
 });

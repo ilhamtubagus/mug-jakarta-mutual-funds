@@ -10,16 +10,14 @@ const {
 
 class TransactionService {
   constructor({
-    repository, logger, paymentRepository,
-    productService, portfolioService, config, mongoClient, producer,
+    repository, logger,
+    productService, portfolioService, config, producer,
   }) {
     this.repository = repository;
     this.logger = logger;
-    this.paymentRepository = paymentRepository;
     this.productService = productService;
     this.portfolioService = portfolioService;
     this.config = config;
-    this.mongoClient = mongoClient;
     this.producer = producer;
   }
 
@@ -51,7 +49,7 @@ class TransactionService {
   }
 
   async _getProduct(productCode) {
-    let product = await this.productService.findOneByProductCode(productCode);
+    let product = await this.productService.findProductByCode(productCode);
 
     if (!product) {
       throw new CustomError(`Product with code ${productCode} not found`, 400);
@@ -62,7 +60,7 @@ class TransactionService {
   }
 
   async _getPortfolio(cif, portfolioCode) {
-    const portfolio = await this.portfolioService.findOne(cif, portfolioCode);
+    const portfolio = await this.portfolioService.findPortfolio(cif, portfolioCode);
 
     if (!portfolio) {
       throw new CustomError(`Portfolio with code ${portfolioCode} not found`, 400);
@@ -88,18 +86,7 @@ class TransactionService {
 
     this.logger.info(`Trying to create transaction and payment request for cif: ${cif}`);
 
-    const session = this.mongoClient.startSession();
-
-    try {
-      await session.withTransaction(async () => {
-        await Promise.all([
-          this.repository.create(transactionData, session),
-          this.paymentRepository.create(paymentRequestData, session),
-        ]);
-      }, {});
-    } finally {
-      await session.endSession();
-    }
+    await this.repository.createTransaction(transactionData, paymentRequestData);
 
     return { ...paymentRequestData, ...payload, status: PENDING };
   }
@@ -123,7 +110,7 @@ class TransactionService {
     const transactionData = TransactionService
       ._constructTransactionData(cif, payload, constructedProduct);
 
-    await this.repository.create(transactionData);
+    await this.repository.createTransaction(transactionData);
 
     return { transactionID: transactionData.transactionID, ...payload, status: PENDING };
   }
@@ -164,7 +151,7 @@ class TransactionService {
   }
 
   async _updateBuyTransaction(transaction, product, paymentCode) {
-    const paymentRequest = await this.paymentRepository.findOne(paymentCode);
+    const paymentRequest = await this.repository.findPaymentRequestByCode(paymentCode);
 
     if (!paymentRequest) {
       throw new CustomError(`Payment code ${paymentCode} not found`, 400);
@@ -175,17 +162,20 @@ class TransactionService {
     }
 
     const { transactionID } = transaction;
-    const { value: updatedTransaction } = await this.repository.update(transactionID, {
+    const updateTransactionPayload = {
+      transactionID,
       status: SETTLED,
       product,
       units: TransactionService._calculateUnits(product, transaction),
-    });
+    };
+    const { value: updatedTransaction } = await this.repository
+      .updateTransaction(updateTransactionPayload);
 
     return updatedTransaction;
   }
 
   async _getTransaction(transactionID) {
-    const transaction = await this.repository.findOne(transactionID);
+    const transaction = await this.repository.findTransactionByID(transactionID);
 
     if (!transaction) {
       throw new CustomError('Transaction not found', 400);
@@ -228,20 +218,25 @@ class TransactionService {
     if (productInPortfolio.units < transaction.units) {
       this.logger.info('Available units is not sufficient, updating transaction status to FAILED');
 
-      await this.repository.update(transactionID, {
+      const updateTransactionPayload = {
+        transactionID,
         status: FAILED,
         product: latestProduct,
         failReason: 'Available units is not sufficient',
-      });
+      };
+      await this.repository.updateTransaction(updateTransactionPayload);
 
       throw new CustomError('Available units is not sufficient', 400);
     }
 
-    const { value: updatedTransaction } = await this.repository.update(transactionID, {
+    const updateTransactionPayload = {
+      transactionID,
       status: SETTLED,
       product: latestProduct,
       amount: TransactionService._calculateAmount(transaction, latestProduct),
-    });
+    };
+    const { value: updatedTransaction } = await this.repository
+      .updateTransaction(updateTransactionPayload);
 
     return updatedTransaction;
   }
@@ -302,10 +297,12 @@ class TransactionService {
     const { transactionID, failReason } = payload;
     await this._getTransaction(transactionID);
 
-    await this.repository.update(transactionID, {
+    const updateTransactionPayload = {
+      transactionID,
       status: FAILED,
       ...(failReason && { failReason }),
-    });
+    };
+    await this.repository.updateTransaction(updateTransactionPayload);
   }
 
   async updateTransaction(payload) {
@@ -330,7 +327,7 @@ class TransactionService {
   async getTransactionHistory(user, payload) {
     const { cif } = user;
 
-    const result = await this.repository.findWithFilter(cif, payload);
+    const result = await this.repository.findTransactions(cif, payload);
 
     return result;
   }

@@ -1,4 +1,4 @@
-const initializeKafkaProducer = async (Kafka, app) => {
+const initializeKafkaProducer = (Kafka) => async (app) => {
   const {
     locals: {
       logger, config: {
@@ -17,10 +17,11 @@ const initializeKafkaProducer = async (Kafka, app) => {
   const producer = kafka.producer();
   await producer.connect();
 
+  logger.info(`Connected to kafka producer for brokers ${brokers}`);
   Object.assign(app.locals, { producer });
 };
 
-const initializeKafkaConsumer = async (Kafka, app, handler) => {
+const initializeKafkaConsumer = (Kafka, handler) => async (app) => {
   const {
     locals: {
       logger,
@@ -41,10 +42,8 @@ const initializeKafkaConsumer = async (Kafka, app, handler) => {
   logger.info('Connecting to kafka consumer');
   await consumer.connect();
 
-  logger.info(`Connecting to topic ${topics.transactionStatus}`);
+  logger.info(`Subscribing to topic ${topics.transactionStatus}`);
   await consumer.subscribe({ topic: topics.transactionStatus, fromBeginning: true });
-
-  logger.info(`Connected to topic ${topics.transactionStatus}`, topics.transactionStatus);
 
   await consumer.run({
     eachMessage: async ({
@@ -59,17 +58,9 @@ const initializeKafkaConsumer = async (Kafka, app, handler) => {
       }
     },
   });
+  logger.info(`Subscribed to topic ${topics.transactionStatus}`, topics.transactionStatus);
 
   Object.assign(app.locals, { consumer });
 };
 
-const disconnectKafka = async (app) => {
-  const { locals: { consumer, producer, logger } } = app;
-
-  await consumer.disconnect();
-  await producer.disconnect();
-
-  logger.info('Disconnected from kafka');
-};
-
-module.exports = { initializeKafkaProducer, initializeKafkaConsumer, disconnectKafka };
+module.exports = { initializeKafkaProducer, initializeKafkaConsumer };

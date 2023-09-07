@@ -4,8 +4,7 @@ describe('#accountInitializations', () => {
   const mockApp = {
     locals: {
       config: {},
-      db: {
-        collection: jest.fn(),
+      atlasFunctions: {
       },
     },
   };

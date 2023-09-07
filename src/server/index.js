@@ -1,26 +1,18 @@
 const express = require('express');
 const { createLogger } = require('bunyan');
 const { Kafka } = require('kafkajs');
-const mongodb = require('mongodb');
 const bodyParser = require('body-parser');
+const Realm = require('realm-web');
 const App = require('./app.js');
 const config = require('../../config.js');
-const { connectToDb, disconnectDb } = require('./db.js');
-const { initializeKafkaProducer, disconnectKafka, initializeKafkaConsumer } = require('./kafka');
+const { initializeKafkaProducer, initializeKafkaConsumer } = require('./initializations/kafka');
+const { initializeAtlasFunctions } = require('./initializations/realm');
 const kafkaConsumerHandler = require('../handler');
 const serviceInitializations = require('../services/initializations');
 
 const routes = require('../routes/index.js');
 
-const _dbTearDown = async (expressApp) => {
-  await disconnectDb(expressApp);
-};
-
-const _kafkaTearDown = async (expressApp) => {
-  await disconnectKafka(expressApp);
-};
-
-const _stopServer = async (server) => async () => {
+const _stopServer = (server) => async () => {
   await server.stop();
 };
 
@@ -34,40 +26,31 @@ const main = async () => {
     post: [],
   };
 
-  const initializations = [
-    async (expressApp) => {
-      await connectToDb(mongodb, expressApp);
-    },
-    async (expressApp) => {
-      await initializeKafkaProducer(Kafka, expressApp);
-    },
-  ];
+  const initializations = [initializeAtlasFunctions(Realm), initializeKafkaProducer(Kafka)];
 
-  const deinitializations = [
-    _dbTearDown,
-    _kafkaTearDown,
-  ];
-
-  const consumer = async (app) => {
-    await initializeKafkaConsumer(Kafka, app, kafkaConsumerHandler);
-  };
+  const consumer = initializeKafkaConsumer(Kafka, kafkaConsumerHandler);
 
   const server = new App({
     express,
     logger,
     config,
     initializations,
-    deinitializations,
     middlewares,
     serviceInitializations,
     routes,
     consumer,
   });
 
-  await server.start();
+  try {
+    await server.start();
+  } catch (e) {
+    logger.error(e);
+    process.exit(1);
+  }
 
-  process.on('SIGINT', await _stopServer(server));
-  process.on('SIGTERM', await _stopServer(server));
+  ['SIGINT', 'SIGTERM'].forEach((signal) => {
+    process.on(signal, _stopServer(server));
+  });
 };
 
-main().then(() => logger.info('Mutual funds app')).catch((e) => logger.error(e));
+main();

@@ -4,8 +4,7 @@ describe('#transactionInitializations', () => {
   const mockApp = {
     locals: {
       logger: {},
-      db: {
-        collection: jest.fn(),
+      atlasFunctions: {
       },
       config: {
         paymentExpiration: 1,
